@@ -15,6 +15,15 @@ Seeds of Decay (or Sky on Devices).
     gclient sync
     cd sod
 
+Note that after gclient sync finishes there is no branch setup (aka detached head). You should then
+create a branch (don't name it master) and start working there. For example:
+
+    sod$ git checkout -b foobar
+    Switched to a new branch 'foobar'
+    sod$ git branch -u origin/master
+    Branch foobar set up to track remote branch master from origin.
+
+
 [1] .gclient file:
 
     solutions = [
