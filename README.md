@@ -1,4 +1,5 @@
 # SoD
+Seeds of Decay (or Sky on Devices).
 
 # Building
 
@@ -10,6 +11,24 @@
 
     mkdir src   # (name doesn't matter)
     cd src
-    gclient config git@github.com:domokit/sod.git
+    create a file named .gclient with the contents below [1]
     gclient sync
     cd sod
+
+[1] .gclient file:
+
+    solutions = [
+      { "name"        : "sod",
+        "url"         : "https://github.com/domokit/sod.git",
+        "deps_file"   : "DEPS",
+        "managed"     : False,
+        "custom_deps" : {
+        },
+        "safesync_url": "",
+      },
+    ]
+    cache_dir = None
+
+
+The above uses https. You can use ssh auth instead by changing `url` above for `"git@github.com:domokit/sod.git"`
+
