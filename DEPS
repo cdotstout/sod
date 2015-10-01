@@ -24,7 +24,7 @@
 vars = {
   "github_url": "https://github.com/%s.git",
 
-  "lk_rev": "@e41856c62ba9b9ba001474f2246e5ce572dd52d1",
+  "lk_rev": "@4895ead73951c1a75c4587e8082926251b3cfebf",
 }
 
 deps = {
