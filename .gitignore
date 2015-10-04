@@ -19,4 +19,5 @@ cscope.*
 *.fletch
 
 third_party/lk
+third_party/fletch
 
