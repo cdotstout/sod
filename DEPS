@@ -32,7 +32,7 @@ vars = {
   "lk_rev": "@4895ead73951c1a75c4587e8082926251b3cfebf",
 
   # Fletch repo and dependencies.
-  "fletch_rev": "@f7ed30aa421c554edca8d015fa0d8de4eb51c040",
+  "fletch_rev": "@2fa13016ba09518f21894396c857dd1d732b0c14",
   "gyp_rev": "@6ee91ad8659871916f9aa840d42e1513befdf638",
   "dart_rev": "@3210196ad25894f9cce82f0f0fc0044c3ef8d5b1",
   "persistent_rev": "@55daae1a038188c49e36a64e7ef132c4861da3d8",
