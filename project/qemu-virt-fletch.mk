@@ -14,6 +14,7 @@ MODULES += \
 GLOBAL_DEFINES += WITH_KERNEL_EVLOG=1
 
 FLETCH_CONFIGURATION = LKQemuVirt
+FLETCH_GYP_DEFINES = "LK_PATH=../../third_party/lk/ LK_PROJECT=qemu-virt-fletch LK_CPU=cortex-a15"
 
 WITH_CPP_SUPPORT=true
 

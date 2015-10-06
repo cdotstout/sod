@@ -1,17 +1,16 @@
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
 FLETCH_BASE := $(BUILDROOT)/../third_party/fletch
-LK_BASE := $(BUILDROOT)/../third_party/lk
 
 MODULE := $(LOCAL_DIR)
+
+MODULE_DEPS += lib/libm
 
 MODULE_SRCS += \
 	$(LOCAL_DIR)/main.c \
 	$(LOCAL_DIR)/missing.c \
 
 MODULE_INCLUDES += $(FLETCH_BASE)/include
-MODULE_INCLUDES += $(LK_BASE)/include
-
 
 ifneq ($(DEBUG),)
 EXTRA_OBJS += $(FLETCH_BASE)/out/Debug$(FLETCH_CONFIGURATION)/libfletch.a

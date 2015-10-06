@@ -1,9 +1,9 @@
 include project/target/stm32f746g-disco.mk
 
-MODULES += app/fletch lib/libm app/shell
+MODULES += app/fletch app/shell lib/gfx
 
 FLETCH_CONFIGURATION = LK
-FLETCH_GYP_DEFINES = "LK_PROJECT=stm32f746g-disco-fletch LK_CPU=cortex-m4"
+FLETCH_GYP_DEFINES = "LK_PATH=../../third_party/lk/ LK_PROJECT=stm32f746g-disco-fletch LK_CPU=cortex-m4"
 
 WITH_CPP_SUPPORT=true
 
