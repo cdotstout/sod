@@ -19,22 +19,32 @@ typedef struct {
   const void* const ptr;
 } StaticFFISymbol;
 
-int FFITestMagicMeat(void) { return 0xbeef; }
-int FFITestMagicVeg(void) { return 0x1eaf; }
+static int FFITestMagicMeat(void) {
+  return 0xbeef;
+}
+
+static int FFITestMagicVeg(void) {
+  return 0x1eaf;
+}
 
 #if WITH_LIB_GFX
 /*
  * Simple framebuffer stuff.
  */
-gfx_surface* GetFullscreenSurface(void) {
+static gfx_surface* GetFullscreenSurface(void) {
   struct display_info info;
   display_get_info(&info);
 
   return gfx_create_surface_from_display(&info);
 }
 
-int GetWidth(gfx_surface* surface) { return surface->width; }
-int GetHeight(gfx_surface* surface) { return surface->height; }
+static int GetWidth(gfx_surface* surface) {
+  return surface->width;
+}
+
+static int GetHeight(gfx_surface* surface) {
+  return surface->height;
+}
 
 #define LIB_GFX_EXPORTS 7
 #else  // WITH_LIB_GFX
@@ -57,7 +67,7 @@ StaticFFISymbol table[] = { {"magic_meat", &FFITestMagicMeat},
 const void* const fletch_ffi_table_start = table;
 const void* const fletch_ffi_table_end = table + 2 + LIB_GFX_EXPORTS;
 
-int ReadSnapshot(unsigned char** snapshot) {
+static int ReadSnapshot(unsigned char** snapshot) {
   printf("READY TO READ SNAPSHOT DATA.\n");
   printf("STEP1: size.\n");
   char size_buf[10];
@@ -83,7 +93,7 @@ int ReadSnapshot(unsigned char** snapshot) {
   return size;
 }
 
-int RunSnapshot(unsigned char* snapshot, int size) {
+static int RunSnapshot(unsigned char* snapshot, int size) {
   printf("STARTING fletch-vm...\n");
   FletchSetup();
   printf("LOADING snapshot...\n");
@@ -102,7 +112,7 @@ int RunSnapshot(unsigned char* snapshot, int size) {
 #if defined(WITH_LIB_CONSOLE)
 #include <lib/console.h>
 
-int Run(void* ptr) {
+static int Run(void* ptr) {
   unsigned char* snapshot;
   int length = ReadSnapshot(&snapshot);
   return RunSnapshot(snapshot, length);
@@ -113,8 +123,7 @@ static int FletchRunner(int argc, const cmd_args *argv) {
   // the Dart main thread. Currently, we get stack overflows (into the kernel)
   // when using the shell thread.
   thread_t* thread = thread_create(
-      "Dart main thread", Run, NULL, DEFAULT_PRIORITY,
-      8192 /* DEFAULT_STACK_SIZE */);
+      "Dart main thread", Run, NULL, DEFAULT_PRIORITY, 8192);
   thread_resume(thread);
 
   int retcode;
@@ -127,9 +136,4 @@ STATIC_COMMAND_START
 { "fletch", "fletch vm", &FletchRunner },
 STATIC_COMMAND_END(fletchrunner);
 #endif
-
-APP_START(fletchrunner)
-.flags = APP_FLAG_CUSTOM_STACK_SIZE,
-.stack_size = 8192,
-APP_END
 
