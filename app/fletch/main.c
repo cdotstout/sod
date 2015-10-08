@@ -4,15 +4,97 @@
 
 #include "config.h"
 
+#include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <malloc.h>
 #include <app.h>
 #include <fletch_api.h>
 #include <endian.h>
 #include <kernel/thread.h>
-#include <lib/gfx.h>
 #include <dev/display.h>
+
+#include <lib/gfx.h>
+#include <lib/tftp.h>
+
+#if defined(WITH_LIB_CONSOLE)
+#include <lib/console.h>
+#else
+#error "fletch app needs a console"
+#endif
+
+#define DOWNLOAD_SLOT_SIZE (512 * 1024)
+
+#if defined(SDRAM_BASE)
+#define DOWNLOAD_BASE ((void*)(SDRAM_BASE))
+#else
+#error "fletch app needs SDRAM"
+#endif
+
+#define FNAME_SIZE 64
+
+
+//////////////// TFTP & Dart ////////////////////////////////////////////////
+
+typedef struct {
+  unsigned char* start;
+  unsigned char* end;
+  unsigned char* max;
+  char name[FNAME_SIZE];
+} download_t;
+
+static download_t* make_download(const char* name, int slot) {
+  download_t* d = malloc(sizeof(download_t));
+  d->start = DOWNLOAD_BASE + (DOWNLOAD_SLOT_SIZE * slot);
+  d->end = d->start;
+  d->max = d->end + DOWNLOAD_SLOT_SIZE;
+  strncpy(d->name, name, FNAME_SIZE);
+  memset(d->start, 0, DOWNLOAD_SLOT_SIZE);
+  return d;
+}
+
+static int run_snapshot(void * ctx) {
+  download_t* d = ctx;
+  printf("starting fletch-vm...\n");
+  FletchSetup();
+  int len = (d->end - d->start);
+  printf("loading snapshot: %d bytes ...\n", len);
+  FletchProgram program = FletchLoadSnapshot(d->start, len);
+  printf("running program...\n");
+  int result = FletchRunMain(program);
+  printf("deleting program...\n");
+  FletchDeleteProgram(program);
+  printf("tearing down fletch-vm...\n");
+  printf("vm exit code: %i\n", result);
+  FletchTearDown();
+  return result;
+}
+
+int tftp_callback(void* data, size_t len, void* arg) {
+  download_t* download = arg;
+
+  if (!data) {
+    // Done with the download. Run the snapshot in a separate thread.
+    thread_resume(thread_create(
+      "fletch vm", &run_snapshot, download, DEFAULT_PRIORITY, 8192));
+  
+    // To reuse this slot : download->end = download->start;
+    return 0;
+  }
+
+  if ((download->end + len) > download->max) {
+    printf("transfer too big, aborting\n");
+    return -1;
+  }
+  if (len) {
+    memcpy(download->end, data, len);
+    download->end += len;
+  }
+  return 0;
+}
+
+//////////////// Dart FFI setup ///////////////////////////////////////////////
 
 typedef struct {
   const char* const name;
@@ -34,7 +116,6 @@ static int FFITestMagicVeg(void) {
 static gfx_surface* GetFullscreenSurface(void) {
   struct display_info info;
   display_get_info(&info);
-
   return gfx_create_surface_from_display(&info);
 }
 
@@ -67,73 +148,35 @@ StaticFFISymbol table[] = { {"magic_meat", &FFITestMagicMeat},
 const void* const fletch_ffi_table_start = table;
 const void* const fletch_ffi_table_end = table + 2 + LIB_GFX_EXPORTS;
 
-static int ReadSnapshot(unsigned char** snapshot) {
-  printf("READY TO READ SNAPSHOT DATA.\n");
-  printf("STEP1: size.\n");
-  char size_buf[10];
-  int pos = 0;
-  while ((size_buf[pos++] = getchar()) != '\n') {
-    putchar(size_buf[pos-1]);
+//////////////// Shell handler ///////////////////////////////////////////////
+
+static int fletch_runner(int argc, const cmd_args *argv) {
+  // The 0th slot maps to the framebuffer so we start above that.
+  static int slot = 1;
+
+  if (argc != 2) {
+    printf("fletch [filename]\n");
+    return 0;
   }
-  if (pos > 9) abort();
-  size_buf[pos] = 0;
-  int size = atoi(size_buf);
-  unsigned char* result = malloc(size);
-  printf("\nSTEP2: reading snapshot of %d bytes.\n", size);
-  int status = 0;
-  for (pos = 0; pos < size; pos++, status++) {
-    result[pos] = getchar();
-    if (status == 1024) {
-      putchar('.');
-      status = 0;
-    }
-  }
-  printf("\nSNAPSHOT READ.\n");
-  *snapshot = result;
-  return size;
+
+  download_t* download = make_download(argv[1].str, slot);
+  tftp_set_write_client(download->name, &tftp_callback, download);
+  printf("ready for %s over tftp (at %p)\n", download->name, download->start);
+  slot++;
+  return 0;
 }
 
-static int RunSnapshot(unsigned char* snapshot, int size) {
-  printf("STARTING fletch-vm...\n");
-  FletchSetup();
-  printf("LOADING snapshot...\n");
-  FletchProgram program = FletchLoadSnapshot(snapshot, size);
-  free(snapshot);
-  printf("RUNNING program...\n");
-  int result = FletchRunMain(program);
-  printf("DELETING program...\n");
-  FletchDeleteProgram(program);
-  printf("TEARING DOWN fletch-vm...\n");
-  printf("EXIT CODE: %i\n", result);
-  FletchTearDown();
-  return result;
+static void services_init(const struct app_descriptor *app) {
+  tftp_server_init(NULL);
 }
 
-#if defined(WITH_LIB_CONSOLE)
-#include <lib/console.h>
-
-static int Run(void* ptr) {
-  unsigned char* snapshot;
-  int length = ReadSnapshot(&snapshot);
-  return RunSnapshot(snapshot, length);
-}
-
-static int FletchRunner(int argc, const cmd_args *argv) {
-  // TODO(ajohnsen): Investigate if we can use the 'shell' thread instaed of
-  // the Dart main thread. Currently, we get stack overflows (into the kernel)
-  // when using the shell thread.
-  thread_t* thread = thread_create(
-      "Dart main thread", Run, NULL, DEFAULT_PRIORITY, 8192);
-  thread_resume(thread);
-
-  int retcode;
-  thread_join(thread, &retcode, INFINITE_TIME);
-
-  return retcode;
-}
+APP_START(network)
+  .init = services_init,
+  .entry = NULL,
+  .flags = 0,
+APP_END
 
 STATIC_COMMAND_START
-{ "fletch", "fletch vm", &FletchRunner },
+{ "fletch", "fletch vm via tftp", &fletch_runner },
 STATIC_COMMAND_END(fletchrunner);
-#endif
 
