@@ -4,7 +4,9 @@ FLETCH_BASE := $(BUILDROOT)/../third_party/fletch
 
 MODULE := $(LOCAL_DIR)
 
-MODULE_DEPS += lib/libm
+MODULE_DEPS += \
+    lib/libm \
+    lib/tftp \
 
 MODULE_SRCS += \
 	$(LOCAL_DIR)/main.c \

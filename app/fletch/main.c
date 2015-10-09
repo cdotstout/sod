@@ -13,6 +13,7 @@
 #include <fletch_api.h>
 #include <endian.h>
 #include <kernel/thread.h>
+#include <kernel/vm.h>
 #include <dev/display.h>
 
 #include <lib/gfx.h>
@@ -28,8 +29,6 @@
 
 #if defined(SDRAM_BASE)
 #define DOWNLOAD_BASE ((void*)(SDRAM_BASE))
-#else
-#error "fletch app needs SDRAM"
 #endif
 
 #define FNAME_SIZE 64
@@ -46,28 +45,47 @@ typedef struct {
 
 static download_t* make_download(const char* name, int slot) {
   download_t* d = malloc(sizeof(download_t));
+
+#if WITH_KERNEL_VM
+  status_t err = vmm_alloc(vmm_get_kernel_aspace(), "fletch app",
+             DOWNLOAD_SLOT_SIZE, (void **)&d->start, 0, 0, 0);
+  if (err < 0) {
+    free(d);
+    printf("error allocating slot for app\n");
+    return NULL;
+  }
+#else
   d->start = DOWNLOAD_BASE + (DOWNLOAD_SLOT_SIZE * slot);
+#endif
   d->end = d->start;
   d->max = d->end + DOWNLOAD_SLOT_SIZE;
+
   strncpy(d->name, name, FNAME_SIZE);
   memset(d->start, 0, DOWNLOAD_SLOT_SIZE);
+
   return d;
 }
 
 static int run_snapshot(void * ctx) {
   download_t* d = ctx;
+
   printf("starting fletch-vm...\n");
   FletchSetup();
+
   int len = (d->end - d->start);
   printf("loading snapshot: %d bytes ...\n", len);
   FletchProgram program = FletchLoadSnapshot(d->start, len);
+
   printf("running program...\n");
   int result = FletchRunMain(program);
+
   printf("deleting program...\n");
   FletchDeleteProgram(program);
+
   printf("tearing down fletch-vm...\n");
   printf("vm exit code: %i\n", result);
   FletchTearDown();
+
   return result;
 }
 
@@ -78,7 +96,7 @@ int tftp_callback(void* data, size_t len, void* arg) {
     // Done with the download. Run the snapshot in a separate thread.
     thread_resume(thread_create(
       "fletch vm", &run_snapshot, download, DEFAULT_PRIORITY, 8192));
-  
+
     // To reuse this slot : download->end = download->start;
     return 0;
   }
@@ -87,6 +105,7 @@ int tftp_callback(void* data, size_t len, void* arg) {
     printf("transfer too big, aborting\n");
     return -1;
   }
+
   if (len) {
     memcpy(download->end, data, len);
     download->end += len;
@@ -180,3 +199,4 @@ STATIC_COMMAND_START
 { "fletch", "fletch vm via tftp", &fletch_runner },
 STATIC_COMMAND_END(fletchrunner);
 
+// vim: set expandtab ts=2 sw=2:
