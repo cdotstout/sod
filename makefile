@@ -7,7 +7,7 @@ lk:
 
 # build lk for qemu
 qemu:
-	$(MAKE) -f third_party/lk/makefile qemu-virt-fletch $(filter-out $@,$(MAKECMDGOALS))
+	$(MAKE) -f third_party/lk/makefile qemu-virt-fletch
 
 # build and run lk for qemu with a display
 qemu-run: qemu
