@@ -17,9 +17,15 @@ qemu-run: qemu
 		-netdev user,id=vmnic,hostname=qemu -device virtio-net-device,netdev=vmnic \
 		-redir udp:10069::69
 
+fletch-tool:
+	ninja -C third_party/fletch/ && ninja -C third_party/fletch/out/ReleaseIA32
+
+%.snap: %.dart fletch-tool
+	third_party/fletch/out/ReleaseIA32/fletch export $< to $@
+
 clean:
 	rm -rf out
 
-.PHONY: all lk clean qemu qemu-run
+.PHONY: all lk clean qemu qemu-run fletch-tool
 
 # vim: set noexpandtab:
