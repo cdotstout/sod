@@ -196,7 +196,7 @@ APP_START(network)
 APP_END
 
 STATIC_COMMAND_START
-{ "fletch", "fletch vm via tftp", &fletch_runner },
+STATIC_COMMAND("fletch", "fletch vm via tftp", &fletch_runner)
 STATIC_COMMAND_END(fletchrunner);
 
 // vim: set expandtab ts=2 sw=2:
