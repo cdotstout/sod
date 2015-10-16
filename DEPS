@@ -13,7 +13,7 @@ vars = {
 
   "chromium_git": "https://chromium.googlesource.com",
 
-  "lk_rev": "@c0ba79fe4f01d077edb3b0134e69a0d7fafc0168",
+  "lk_rev": "@4e0b62745c1647fc6ce4af5a217ad1658cdbfb2d",
 
   # Fletch repo and dependencies.
   "fletch_rev": "@2fa13016ba09518f21894396c857dd1d732b0c14",

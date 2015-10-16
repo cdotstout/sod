@@ -12,7 +12,7 @@ qemu:
 # build and run lk for qemu with a display
 qemu-run: qemu
 	qemu-system-arm -machine virt -cpu cortex-a15 \
-		-m 8 -kernel out/build-qemu-virt-fletch/lk.elf \
+		-m 12 -kernel out/build-qemu-virt-fletch/lk.elf \
 		-device virtio-gpu-device -serial stdio \
 		-netdev user,id=vmnic,hostname=qemu -device virtio-net-device,netdev=vmnic \
 		-redir udp:10069::69

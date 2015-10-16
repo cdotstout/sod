@@ -179,6 +179,10 @@ static int fletch_runner(int argc, const cmd_args *argv) {
   }
 
   download_t* download = make_download(argv[1].str, slot);
+  if (!download) {
+    return -1;
+  }
+
   tftp_set_write_client(download->name, &tftp_callback, download);
   printf("ready for %s over tftp (at %p)\n", download->name, download->start);
   slot++;
