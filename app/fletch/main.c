@@ -146,7 +146,7 @@ static int GetHeight(gfx_surface* surface) {
   return surface->height;
 }
 
-#define LIB_GFX_EXPORTS 7
+#define LIB_GFX_EXPORTS 8
 #else  // WITH_LIB_GFX
 #define LIB_GFX_EXPORTS 0
 #endif  // WITH_LIB_GFX
@@ -159,6 +159,7 @@ StaticFFISymbol table[] = { {"magic_meat", &FFITestMagicMeat},
                             {"gfx_height", &GetHeight},
                             {"gfx_destroy", &gfx_surface_destroy},
                             {"gfx_pixel", &gfx_putpixel},
+                            {"gfx_line", &gfx_line},
                             {"gfx_clear", &gfx_clear},
                             {"gfx_flush", &gfx_flush},
 #endif  // WITH_LIB_GFX
