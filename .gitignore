@@ -18,6 +18,8 @@ cscope.*
 *.class
 *.fletch
 
+*.snap
+
 third_party/lk
 third_party/fletch
 

@@ -17,15 +17,23 @@ qemu-run: qemu
 		-netdev user,id=vmnic,hostname=qemu -device virtio-net-device,netdev=vmnic \
 		-redir udp:10069::69
 
-fletch-tool:
-	ninja -C third_party/fletch/ && ninja -C third_party/fletch/out/ReleaseIA32
+FLETCH_TOOL_DIR = third_party/fletch/out/ReleaseIA32/
 
-%.snap: %.dart fletch-tool
-	third_party/fletch/out/ReleaseIA32/fletch export $< to $@
+fletch-tool:
+	ninja -C third_party/fletch/ && ninja -C $(FLETCH_TOOL_DIR)
+
+fletch-reset:
+	killall dart
+
+fletch-session: fletch-reset fletch-tool
+	$(FLETCH_TOOL_DIR)fletch create session sodff with file dart/fletch-settings
+
+%.snap: %.dart fletch-session
+	$(FLETCH_TOOL_DIR)fletch export $< to $@ in session sodff
 
 clean:
 	rm -rf out
 
-.PHONY: all lk clean qemu qemu-run fletch-tool
+.PHONY: all lk clean qemu qemu-run fletch-tool fletch-reset fletch-session
 
 # vim: set noexpandtab:
