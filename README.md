@@ -44,7 +44,10 @@ Build for the default target (currently stm32f746g-disco-fletch):
 
 Create a fletch snapshot given lines.dart:
 
-   sod$ make lines.snap
+    sod$ make third_party/fletch/samples/lk/gfx/lines.snap
+
+If this command fails because it can't find lk packages, you probably need to
+edit `~/local.fletch-settings` and be sure to `fletch shutdown`.
 
 
 Inspect the root makefile for other targets.
@@ -70,6 +73,7 @@ Note that in qemu the tftp port is redirected to 10069.
 
 Assuming qemu, on linux:
 
+    sod$ cd third_party/fletch/samples/lk/gfx
     sod$ tftp 0.0.0.0 10069
     tftp> binary
     tftp> put lines.snap
