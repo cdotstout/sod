@@ -7,6 +7,7 @@ MODULE := $(LOCAL_DIR)
 MODULE_DEPS += \
     lib/libm \
     lib/tftp \
+    lib/font \
 
 MODULE_SRCS += \
 	$(LOCAL_DIR)/main.c \

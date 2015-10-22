@@ -16,6 +16,7 @@
 #include <kernel/vm.h>
 #include <dev/display.h>
 
+#include <lib/font.h>
 #include <lib/gfx.h>
 #include <lib/tftp.h>
 
@@ -128,10 +129,6 @@ static int FFITestMagicVeg(void) {
   return 0x1eaf;
 }
 
-#if WITH_LIB_GFX
-/*
- * Simple framebuffer stuff.
- */
 static gfx_surface* GetFullscreenSurface(void) {
   struct display_info info;
   display_get_info(&info);
@@ -146,27 +143,27 @@ static int GetHeight(gfx_surface* surface) {
   return surface->height;
 }
 
-#define LIB_GFX_EXPORTS 8
-#else  // WITH_LIB_GFX
-#define LIB_GFX_EXPORTS 0
-#endif  // WITH_LIB_GFX
+#define FFI_TABLE_SIZE 10
 
-StaticFFISymbol table[] = { {"magic_meat", &FFITestMagicMeat},
-                            {"magic_veg", &FFITestMagicVeg},
-#if WITH_LIB_GFX
-                            {"gfx_create", &GetFullscreenSurface},
-                            {"gfx_width", &GetWidth},
-                            {"gfx_height", &GetHeight},
-                            {"gfx_destroy", &gfx_surface_destroy},
-                            {"gfx_pixel", &gfx_putpixel},
-                            {"gfx_line", &gfx_line},
-                            {"gfx_clear", &gfx_clear},
-                            {"gfx_flush", &gfx_flush},
-#endif  // WITH_LIB_GFX
+static int GetFFITableSize(void) {
+  return FFI_TABLE_SIZE;
+}
+
+StaticFFISymbol table[FFI_TABLE_SIZE] = { 
+  {"ffi_table", &GetFFITableSize},
+  {"gfx_create", &GetFullscreenSurface},
+  {"gfx_width", &GetWidth},
+  {"gfx_height", &GetHeight},
+  {"gfx_destroy", &gfx_surface_destroy},
+  {"gfx_pixel", &gfx_putpixel},
+  {"gfx_line", &gfx_line},
+  {"gfx_clear", &gfx_clear},
+  {"gfx_flush", &gfx_flush},
+  {"font_draw_char", &font_draw_char}
 };
 
 const void* const fletch_ffi_table_start = table;
-const void* const fletch_ffi_table_end = table + 2 + LIB_GFX_EXPORTS;
+const void* const fletch_ffi_table_end = table + FFI_TABLE_SIZE;
 
 //////////////// Shell handler ///////////////////////////////////////////////
 
