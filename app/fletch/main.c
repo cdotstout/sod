@@ -9,8 +9,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <malloc.h>
+
 #include <app.h>
-#include <fletch_api.h>
+#include <include/fletch_api.h>
+#include <include/static_ffi.h>
+
 #include <endian.h>
 #include <kernel/thread.h>
 #include <kernel/vm.h>
@@ -116,19 +119,6 @@ int tftp_callback(void* data, size_t len, void* arg) {
 
 //////////////// Dart FFI setup ///////////////////////////////////////////////
 
-typedef struct {
-  const char* const name;
-  const void* const ptr;
-} StaticFFISymbol;
-
-static int FFITestMagicMeat(void) {
-  return 0xbeef;
-}
-
-static int FFITestMagicVeg(void) {
-  return 0x1eaf;
-}
-
 static gfx_surface* GetFullscreenSurface(void) {
   struct display_info info;
   display_get_info(&info);
@@ -149,21 +139,18 @@ static int GetFFITableSize(void) {
   return FFI_TABLE_SIZE;
 }
 
-StaticFFISymbol table[FFI_TABLE_SIZE] = { 
-  {"ffi_table", &GetFFITableSize},
-  {"gfx_create", &GetFullscreenSurface},
-  {"gfx_width", &GetWidth},
-  {"gfx_height", &GetHeight},
-  {"gfx_destroy", &gfx_surface_destroy},
-  {"gfx_pixel", &gfx_putpixel},
-  {"gfx_line", &gfx_line},
-  {"gfx_clear", &gfx_clear},
-  {"gfx_flush", &gfx_flush},
-  {"font_draw_char", &font_draw_char}
-};
-
-const void* const fletch_ffi_table_start = table;
-const void* const fletch_ffi_table_end = table + FFI_TABLE_SIZE;
+FLETCH_EXPORT_TABLE_BEGIN
+  FLETCH_EXPORT_TABLE_ENTRY("ffi_table", GetFFITableSize)
+  FLETCH_EXPORT_TABLE_ENTRY("gfx_create", GetFullscreenSurface)
+  FLETCH_EXPORT_TABLE_ENTRY("gfx_width", GetWidth)
+  FLETCH_EXPORT_TABLE_ENTRY("gfx_height", GetHeight)
+  FLETCH_EXPORT_TABLE_ENTRY("gfx_destroy", gfx_surface_destroy)
+  FLETCH_EXPORT_TABLE_ENTRY("gfx_pixel", gfx_putpixel)
+  FLETCH_EXPORT_TABLE_ENTRY("gfx_line", gfx_line)
+  FLETCH_EXPORT_TABLE_ENTRY("gfx_clear", gfx_clear)
+  FLETCH_EXPORT_TABLE_ENTRY("gfx_flush", gfx_flush)
+  FLETCH_EXPORT_TABLE_ENTRY("font_draw_char", font_draw_char)
+FLETCH_EXPORT_TABLE_END
 
 //////////////// Shell handler ///////////////////////////////////////////////
 
