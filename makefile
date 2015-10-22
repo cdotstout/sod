@@ -23,7 +23,7 @@ fletch-tool:
 	ninja -C third_party/fletch/ && ninja -C $(FLETCH_TOOL_DIR)
 
 fletch-reset:
-	killall dart
+	$(FLETCH_TOOL_DIR)fletch quit
 
 fletch-session: fletch-reset fletch-tool
 	$(FLETCH_TOOL_DIR)fletch create session sodff with file dart/fletch-settings
