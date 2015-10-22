@@ -16,12 +16,12 @@
 
 #include <endian.h>
 #include <kernel/thread.h>
-#include <kernel/vm.h>
 #include <dev/display.h>
 
 #include <lib/font.h>
 #include <lib/gfx.h>
 #include <lib/tftp.h>
+#include <lib/page_alloc.h>
 
 #if defined(WITH_LIB_CONSOLE)
 #include <lib/console.h>
@@ -31,12 +31,7 @@
 
 #define DOWNLOAD_SLOT_SIZE (512 * 1024)
 
-#if defined(SDRAM_BASE)
-#define DOWNLOAD_BASE ((void*)(SDRAM_BASE))
-#endif
-
 #define FNAME_SIZE 64
-
 
 //////////////// TFTP & Dart ////////////////////////////////////////////////
 
@@ -50,17 +45,14 @@ typedef struct {
 static download_t* make_download(const char* name, int slot) {
   download_t* d = malloc(sizeof(download_t));
 
-#if WITH_KERNEL_VM
-  status_t err = vmm_alloc(vmm_get_kernel_aspace(), "fletch app",
-             DOWNLOAD_SLOT_SIZE, (void **)&d->start, 0, 0, 0);
-  if (err < 0) {
+  // use the page alloc api to grab space for the app
+  d->start = page_alloc(DOWNLOAD_SLOT_SIZE / PAGE_SIZE);
+  if (!d->start) {
     free(d);
     printf("error allocating slot for app\n");
     return NULL;
   }
-#else
-  d->start = DOWNLOAD_BASE + (DOWNLOAD_SLOT_SIZE * slot);
-#endif
+
   d->end = d->start;
   d->max = d->end + DOWNLOAD_SLOT_SIZE;
 
