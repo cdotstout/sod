@@ -42,7 +42,7 @@ typedef struct {
   char name[FNAME_SIZE];
 } download_t;
 
-static download_t* make_download(const char* name, int slot) {
+static download_t* MakeDownload(const char* name, int slot) {
   download_t* d = malloc(sizeof(download_t));
 
   // use the page alloc api to grab space for the app
@@ -62,7 +62,7 @@ static download_t* make_download(const char* name, int slot) {
   return d;
 }
 
-static int run_snapshot(void * ctx) {
+static int RunSnapshot(void* ctx) {
   download_t* d = ctx;
 
   printf("starting fletch-vm...\n");
@@ -85,13 +85,13 @@ static int run_snapshot(void * ctx) {
   return result;
 }
 
-int tftp_callback(void* data, size_t len, void* arg) {
+int TftpCallback(void* data, size_t len, void* arg) {
   download_t* download = arg;
 
   if (!data) {
     // Done with the download. Run the snapshot in a separate thread.
-    thread_resume(thread_create(
-      "fletch vm", &run_snapshot, download, DEFAULT_PRIORITY, 8192));
+    thread_resume(thread_create("fletch vm", &RunSnapshot, download,
+                                DEFAULT_PRIORITY, 8192));
 
     // To reuse this slot : download->end = download->start;
     return 0;
@@ -132,21 +132,21 @@ static int GetFFITableSize(void) {
 }
 
 FLETCH_EXPORT_TABLE_BEGIN
-  FLETCH_EXPORT_TABLE_ENTRY("ffi_table", GetFFITableSize)
-  FLETCH_EXPORT_TABLE_ENTRY("gfx_create", GetFullscreenSurface)
-  FLETCH_EXPORT_TABLE_ENTRY("gfx_width", GetWidth)
-  FLETCH_EXPORT_TABLE_ENTRY("gfx_height", GetHeight)
-  FLETCH_EXPORT_TABLE_ENTRY("gfx_destroy", gfx_surface_destroy)
-  FLETCH_EXPORT_TABLE_ENTRY("gfx_pixel", gfx_putpixel)
-  FLETCH_EXPORT_TABLE_ENTRY("gfx_line", gfx_line)
-  FLETCH_EXPORT_TABLE_ENTRY("gfx_clear", gfx_clear)
-  FLETCH_EXPORT_TABLE_ENTRY("gfx_flush", gfx_flush)
-  FLETCH_EXPORT_TABLE_ENTRY("font_draw_char", font_draw_char)
+FLETCH_EXPORT_TABLE_ENTRY("ffi_table", GetFFITableSize)
+FLETCH_EXPORT_TABLE_ENTRY("gfx_create", GetFullscreenSurface)
+FLETCH_EXPORT_TABLE_ENTRY("gfx_width", GetWidth)
+FLETCH_EXPORT_TABLE_ENTRY("gfx_height", GetHeight)
+FLETCH_EXPORT_TABLE_ENTRY("gfx_destroy", gfx_surface_destroy)
+FLETCH_EXPORT_TABLE_ENTRY("gfx_pixel", gfx_putpixel)
+FLETCH_EXPORT_TABLE_ENTRY("gfx_line", gfx_line)
+FLETCH_EXPORT_TABLE_ENTRY("gfx_clear", gfx_clear)
+FLETCH_EXPORT_TABLE_ENTRY("gfx_flush", gfx_flush)
+FLETCH_EXPORT_TABLE_ENTRY("font_draw_char", font_draw_char)
 FLETCH_EXPORT_TABLE_END
 
 //////////////// Shell handler ///////////////////////////////////////////////
 
-static int fletch_runner(int argc, const cmd_args *argv) {
+static int FletchRunner(int argc, const cmd_args* argv) {
   // The 0th slot maps to the framebuffer so we start above that.
   static int slot = 1;
 
@@ -155,29 +155,29 @@ static int fletch_runner(int argc, const cmd_args *argv) {
     return 0;
   }
 
-  download_t* download = make_download(argv[1].str, slot);
+  download_t* download = MakeDownload(argv[1].str, slot);
   if (!download) {
     return -1;
   }
 
-  tftp_set_write_client(download->name, &tftp_callback, download);
+  tftp_set_write_client(download->name, &TftpCallback, download);
   printf("ready for %s over tftp (at %p)\n", download->name, download->start);
   slot++;
   return 0;
 }
 
-static void services_init(const struct app_descriptor *app) {
+static void ServicesInit(const struct app_descriptor* app) {
   tftp_server_init(NULL);
 }
 
-APP_START(network)
-  .init = services_init,
+APP_START(frun)
+  .init = ServicesInit,
   .entry = NULL,
   .flags = 0,
 APP_END
 
 STATIC_COMMAND_START
-STATIC_COMMAND("fletch", "fletch vm via tftp", &fletch_runner)
+STATIC_COMMAND("fletch", "fletch vm via tftp", &FletchRunner)
 STATIC_COMMAND_END(fletchrunner);
 
 // vim: set expandtab ts=2 sw=2:
