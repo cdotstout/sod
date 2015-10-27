@@ -85,6 +85,17 @@ static int RunSnapshot(void* ctx) {
   return result;
 }
 
+static void Debug(int port) {
+  printf("starting fletch-vm...\n");
+  FletchSetup();
+
+  printf("wainting for debug connection on port: %i\n", port);
+  FletchWaitForDebuggerConnection(port);
+
+  printf("vm exit");
+  FletchTearDown();
+}
+
 int TftpCallback(void* data, size_t len, void* arg) {
   download_t* download = arg;
 
@@ -151,7 +162,14 @@ static int FletchRunner(int argc, const cmd_args* argv) {
   static int slot = 1;
 
   if (argc != 2) {
-    printf("fletch [filename]\n");
+    printf("Usage:\n");
+    printf("  fletch <filename>\n");
+    printf("  fletch debug\n");
+    return 0;
+  }
+
+  if (strcmp(argv[1].str, "debug") == 0) {
+    Debug(4567);
     return 0;
   }
 

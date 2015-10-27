@@ -19,7 +19,8 @@ qemu-run: qemu
 		-m 12 -kernel out/build-qemu-virt-fletch/lk.elf \
 		-device virtio-gpu-device -serial stdio \
 		-netdev user,id=vmnic,hostname=qemu -device virtio-net-device,netdev=vmnic \
-		-redir udp:10069::69
+		-redir udp:10069::69 \
+		-redir tcp:4567::4567
 
 disco-flash: disco
 	openocd -f interface/stlink-v2-1.cfg -f board/stm32756g_eval.cfg \
