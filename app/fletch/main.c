@@ -15,6 +15,7 @@
 #include <include/static_ffi.h>
 
 #include <endian.h>
+#include <platform.h>
 #include <kernel/thread.h>
 #include <dev/display.h>
 
@@ -42,14 +43,14 @@ typedef struct {
   char name[FNAME_SIZE];
 } download_t;
 
-static download_t* MakeDownload(const char* name, int slot) {
+static download_t* MakeDownload(const char* name) {
   download_t* d = malloc(sizeof(download_t));
 
   // use the page alloc api to grab space for the app
   d->start = page_alloc(DOWNLOAD_SLOT_SIZE / PAGE_SIZE);
   if (!d->start) {
     free(d);
-    printf("error allocating slot for app\n");
+    printf("error allocating memory for download\n");
     return NULL;
   }
 
@@ -73,9 +74,13 @@ static int RunSnapshot(void* ctx) {
   FletchProgram program = FletchLoadSnapshot(d->start, len);
 
   printf("running program...\n");
+
+  lk_bigtime_t start = current_time_hires();
   int result = FletchRunMain(program);
 
-  printf("deleting program...\n");
+  lk_bigtime_t elapsed = current_time_hires() - start;
+  printf("fletch-vm ran for %llu usecs\n", elapsed);
+
   FletchDeleteProgram(program);
 
   printf("tearing down fletch-vm...\n");
@@ -103,8 +108,6 @@ int TftpCallback(void* data, size_t len, void* arg) {
     // Done with the download. Run the snapshot in a separate thread.
     thread_resume(thread_create("fletch vm", &RunSnapshot, download,
                                 DEFAULT_PRIORITY, 8192));
-
-    // To reuse this slot : download->end = download->start;
     return 0;
   }
 
@@ -158,9 +161,6 @@ FLETCH_EXPORT_TABLE_END
 //////////////// Shell handler ///////////////////////////////////////////////
 
 static int FletchRunner(int argc, const cmd_args* argv) {
-  // The 0th slot maps to the framebuffer so we start above that.
-  static int slot = 1;
-
   if (argc != 2) {
     printf("Usage:\n");
     printf("  fletch <filename>\n");
@@ -173,14 +173,13 @@ static int FletchRunner(int argc, const cmd_args* argv) {
     return 0;
   }
 
-  download_t* download = MakeDownload(argv[1].str, slot);
+  download_t* download = MakeDownload(argv[1].str);
   if (!download) {
     return -1;
   }
 
   tftp_set_write_client(download->name, &TftpCallback, download);
   printf("ready for %s over tftp (at %p)\n", download->name, download->start);
-  slot++;
   return 0;
 }
 
