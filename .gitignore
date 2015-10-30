@@ -22,4 +22,4 @@ cscope.*
 
 third_party/lk
 third_party/fletch
-
+third_party/openocd/linux

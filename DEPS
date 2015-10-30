@@ -83,4 +83,20 @@ hooks = [
       'sod/third_party/fletch/third_party/bin',
     ],
   },
+  {
+    'name': 'third_party_openocd',
+    'pattern': '.',
+    'action': [
+      'download_from_google_storage',
+      '--no_auth',
+      '--no_resume',
+      '--bucket',
+      'dart-dependencies-fletch',
+      '-d',
+      '-r',
+      '-u',
+      '--auto_platform',
+      'sod/third_party/openocd',
+    ],
+  },
 ]
