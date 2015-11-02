@@ -19,6 +19,7 @@
 #include <kernel/thread.h>
 #include <dev/display.h>
 
+#include <lib/bio.h>
 #include <lib/font.h>
 #include <lib/gfx.h>
 #include <lib/tftp.h>
@@ -35,6 +36,12 @@
 #define FNAME_SIZE 64
 
 //////////////// TFTP & Dart ////////////////////////////////////////////////
+
+enum {
+  MODE_RUN,
+  MODE_BURN
+} fletch_mode;
+
 
 typedef struct {
   unsigned char* start;
@@ -59,7 +66,6 @@ static download_t* MakeDownload(const char* name) {
 
   strncpy(d->name, name, FNAME_SIZE);
   memset(d->start, 0, DOWNLOAD_SLOT_SIZE);
-
   return d;
 }
 
@@ -101,13 +107,80 @@ static void Debug(int port) {
   FletchTearDown();
 }
 
+static void LiveRun(download_t* download) {
+  thread_resume(
+      thread_create("fletch vm", &RunSnapshot, download,
+                    DEFAULT_PRIORITY, 8192));
+}
+
+static void Burn(const char* device, download_t* download) {
+  printf("writting to %s ..\n", device);
+  bdev_t *bd = bio_open(device);
+  if (!bd) {
+    printf("can't open %s\n", device);
+    return;
+  }
+
+  size_t len = download->end - download->start;
+
+  ssize_t rv = bio_erase(bd, 0, len + sizeof(len));
+  if (rv < 0) {
+    printf("error %ld erasing %s\n", rv, device);
+    return; 
+  }
+
+  rv = bio_write(bd, &len, 0, sizeof(len));
+  rv = bio_write(bd, download->start, sizeof(len), len);
+  bio_close(bd);
+
+  if (rv < 0) {
+    printf("error %ld while writting to %s\n", rv, device);    
+    return;
+  }
+  printf("%ld bytes written to %s\n", rv, device);
+}
+
+static void FlashRun(const char* device) {
+  bdev_t *bd = bio_open(device);
+  if (!bd) {
+    printf("error opening %s\n", device);
+    return;
+  }
+  unsigned char* address = 0;
+  int rv = bio_ioctl(bd, BIO_IOCTL_GET_MEM_MAP, &address);
+  if (rv < 0) {
+    printf("error %d in %s ioctl\n", rv, device);
+    return;
+  }
+  size_t len = *((size_t*)address);
+  if (!len) {
+    printf("invalid snapshot length\n");
+    return;
+  }
+  address += sizeof(len);
+  printf("snapshot at %p is %d bytes\n", address, len);
+
+  download_t* download = malloc(sizeof(download_t));
+  download->start = address;
+  download->end = download->start + len;
+  strncpy(download->name, "flash", FNAME_SIZE);
+
+  LiveRun(download);
+  return;  
+}
+
 int TftpCallback(void* data, size_t len, void* arg) {
   download_t* download = arg;
 
   if (!data) {
-    // Done with the download. Run the snapshot in a separate thread.
-    thread_resume(thread_create("fletch vm", &RunSnapshot, download,
-                                DEFAULT_PRIORITY, 8192));
+    // Done with the download. 
+    if (fletch_mode == MODE_BURN) {
+      // Write to QSPI flash.
+      Burn("qspi-flash", download);
+    } else {
+      // Run the snapshot in a separate thread.
+      LiveRun(download);  
+    }
     return 0;
   }
 
@@ -161,10 +234,13 @@ FLETCH_EXPORT_TABLE_END
 //////////////// Shell handler ///////////////////////////////////////////////
 
 static int FletchRunner(int argc, const cmd_args* argv) {
-  if (argc != 2) {
+  if ((argc < 2) || (argc > 3)) {
+usage:
     printf("Usage:\n");
-    printf("  fletch <filename>\n");
-    printf("  fletch debug\n");
+    printf(" %s <filename>\n", argv[0].str);
+    printf(" %s debug\n", argv[0].str);
+    printf(" %s run\n", argv[0].str);
+    printf(" %s write <filename>\n", argv[0].str);
     return 0;
   }
 
@@ -173,7 +249,24 @@ static int FletchRunner(int argc, const cmd_args* argv) {
     return 0;
   }
 
-  download_t* download = MakeDownload(argv[1].str);
+  if (strcmp(argv[1].str, "run") == 0) {
+    FlashRun("qspi-flash");
+    return 0;
+  }
+
+  const char* filename = 0;
+  if (strcmp(argv[1].str, "write") == 0) {
+    if (argc != 3)
+      goto usage;
+    fletch_mode = MODE_BURN;
+    filename = argv[2].str;
+  } else {
+    filename = argv[1].str;
+  }
+
+  printf("mode: %s\n", fletch_mode == MODE_BURN ? "write" : "run");
+
+  download_t* download = MakeDownload(filename);
   if (!download) {
     return -1;
   }
@@ -184,6 +277,7 @@ static int FletchRunner(int argc, const cmd_args* argv) {
 }
 
 static void ServicesInit(const struct app_descriptor* app) {
+  fletch_mode = MODE_RUN;
   tftp_server_init(NULL);
 }
 
