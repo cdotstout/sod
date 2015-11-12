@@ -19,6 +19,8 @@ cscope.*
 *.fletch
 
 *.snap
+*.snap.info.bin
+*.snap.info.json
 
 third_party/lk
 third_party/fletch
