@@ -16,13 +16,16 @@ vars = {
   "lk_rev": "@6cdc5cd1daaf22f56422301d3dac67c3573ef290",
 
   # Fletch repo and dependencies.
-  "fletch_rev": "@5e610881a2ff146bf0039b00ed4d5a89911dcb82",
+  "fletch_rev": "@d3fd22e08b9d143629120a95aaf2bff59f858c3f",
   "gyp_rev": "@6ee91ad8659871916f9aa840d42e1513befdf638",
-  "dart_rev": "@81f7629dc13c232833d181c908a869f01422dd05",
+  "dart_rev": "@34357cdad108dcba734949bd13bd28c76ea285e0",
   "persistent_rev": "@55daae1a038188c49e36a64e7ef132c4861da3d8",
   "charcode_tag": "@1.1.0",
   "path_tag": "@1.3.6",
   "package_config_tag": "@0.1.3",
+  "collection_rev": "@1da9a07f32efa2ba0c391b289e2037391e31da0e",
+  "dart2js_info_rev" : "@0a221eaf16aec3879c45719de656680ccb80d8a1",
+  "pub_semver_tag": "@1.2.1",
 }
 
 deps = {
@@ -39,6 +42,9 @@ deps = {
   "sod/third_party/fletch/third_party/dart":
       (Var("github_mirror") % "sdk") + Var("dart_rev"),
 
+  "fletch/third_party/pub_semver":
+      (Var("github_mirror") % "pub_semver") + Var("pub_semver_tag"),
+
   "sod/third_party/fletch/third_party/persistent":
       (Var("github_url") % "polux/persistent") + Var("persistent_rev"),
 
@@ -50,6 +56,15 @@ deps = {
 
   "sod/third_party/fletch/third_party/package_config":
       (Var("github_mirror") % "package_config") + Var("package_config_tag"),
+
+  "sod/third_party/fletch/third_party/collection":
+      (Var("github_mirror") % "collection") + Var("collection_rev"),
+
+  "sod/third_party/fletch/third_party/dart2js_info":
+      "https://github.com/dart-lang/dart2js_info.git" + Var("dart2js_info_rev"),
+
+  "sod/third_party/fletch/third_party/pub_semver":
+      (Var("github_mirror") % "pub_semver") + Var("pub_semver_tag"),
 }
 
 hooks = [
