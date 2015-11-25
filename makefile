@@ -22,10 +22,26 @@ qemu-run: qemu
 		-redir udp:10069::69 \
 		-redir tcp:4567::4567
 
+# flash the disco board using the checked in version of openocd
+
+UNAME_S = $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+  PLATFORM = linux
+endif
+ifeq ($(UNAME_S),Darwin)
+  PLATFORM = mac
+endif
+
+OPENOCD_DIR = third_party/openocd/$(PLATFORM)/openocd
+
 disco-flash: disco
-	openocd -f interface/stlink-v2-1.cfg -f board/stm32756g_eval.cfg \
+	$(OPENOCD_DIR)/bin/openocd \
+		-f interface/stlink-v2-1.cfg \
+		-f board/stm32756g_eval.cfg \
+		--search $(OPENOCD_DIR)/share/openocd/scripts \
 		-c "program out/build-stm32f746g-disco-fletch/lk.bin reset exit 0x08000000"
 
+# support for building Fletch snapshots from dart files
 FLETCH_TOOL_DIR = third_party/fletch/out/ReleaseIA32/
 
 fletch-tool:
