@@ -47,10 +47,10 @@ FLETCH_TOOL_DIR = third_party/fletch/out/ReleaseIA32/
 fletch-tool:
 	ninja -C third_party/fletch/ && ninja -C $(FLETCH_TOOL_DIR)
 
-fletch-reset:
+fletch-reset: fletch-tool
 	$(FLETCH_TOOL_DIR)fletch quit
 
-fletch-session: fletch-reset fletch-tool
+fletch-session: fletch-reset
 	$(FLETCH_TOOL_DIR)fletch create session sodff with file dart/fletch-settings
 
 %.snap: %.dart fletch-session
