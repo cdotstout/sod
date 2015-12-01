@@ -1,7 +1,6 @@
 // Copyright (c) 2015, the SoD project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
-//
 
 import 'dart:fletch';
 
@@ -23,9 +22,15 @@ void main() {
   var output = input.receive();
 
   int i = MESSAGE_COUNT;
+  int prev;
   while (i > 0) {
     output.send(i);
+    prev = i;
     i = input.receive();
+    if (i + 1 != prev) {
+      print("unexpected {i}");
+      break;
+    }
   }
 
   output.send(0);
