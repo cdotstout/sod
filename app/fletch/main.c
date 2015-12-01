@@ -11,9 +11,11 @@
 #include <malloc.h>
 
 #include <app.h>
+#include <err.h>
 #include <include/fletch_api.h>
 #include <include/static_ffi.h>
 
+#include <compiler.h>
 #include <endian.h>
 #include <platform.h>
 #include <kernel/thread.h>
@@ -198,17 +200,26 @@ int TftpCallback(void* data, size_t len, void* arg) {
 
 //////////////// Dart FFI setup ///////////////////////////////////////////////
 
+__WEAK status_t display_get_info(struct display_info *info) {
+  return ERR_NOT_FOUND;
+}
+
 static gfx_surface* GetFullscreenSurface(void) {
   struct display_info info;
-  display_get_info(&info);
+  if (display_get_info(&info) < 0)
+    return NULL;
   return gfx_create_surface_from_display(&info);
 }
 
 static int GetWidth(gfx_surface* surface) {
+  if (!surface)
+    return 0;
   return surface->width;
 }
 
 static int GetHeight(gfx_surface* surface) {
+  if (!surface)
+    return 0;
   return surface->height;
 }
 

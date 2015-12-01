@@ -13,6 +13,9 @@ qemu:
 disco:
 	$(MAKE) -f third_party/lk/makefile stm32f746g-disco-fletch
 
+dartuino:
+	$(MAKE) -f third_party/lk/makefile dartuino-p0-fletch	
+
 # build and run lk for qemu with a display
 qemu-run: qemu
 	qemu-system-arm -machine virt -cpu cortex-a15 \
