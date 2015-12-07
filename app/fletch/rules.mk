@@ -4,6 +4,8 @@ FLETCH_BASE := $(BUILDROOT)/../third_party/fletch
 
 MODULE := $(LOCAL_DIR)
 
+MODULE_CPPFLAGS := -std=c++11
+
 MODULE_DEPS += \
     lib/libm \
     lib/tftp \
@@ -12,6 +14,7 @@ MODULE_DEPS += \
 MODULE_SRCS += \
 	$(LOCAL_DIR)/main.c \
 	$(LOCAL_DIR)/missing.c \
+	$(LOCAL_DIR)/loader.cpp
 
 MODULE_INCLUDES += $(FLETCH_BASE)
 
