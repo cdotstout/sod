@@ -14,7 +14,8 @@ MODULE_DEPS += \
 MODULE_SRCS += \
 	$(LOCAL_DIR)/main.c \
 	$(LOCAL_DIR)/missing.c \
-	$(LOCAL_DIR)/loader.cpp
+	$(LOCAL_DIR)/loader.cpp \
+	$(LOCAL_DIR)/sensors.c
 
 MODULE_INCLUDES += $(FLETCH_BASE)
 
