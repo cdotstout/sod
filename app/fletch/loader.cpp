@@ -50,6 +50,20 @@ download_t* MakeDownload(const char* name) {
   return d;
 }
 
+static int LiveDebug(void* ctx) {
+  int port = *reinterpret_cast<int*>(ctx);
+  printf("starting fletch-vm...\n");
+  FletchSetup();
+
+  printf("ready for fletch debug via port: %i\n", port);
+  while (true) {
+    FletchWaitForDebuggerConnection(port);
+  }
+
+  FletchTearDown();
+  return 0;
+}
+
 int RunSnapshot(void* ctx) {
   download_t* d = reinterpret_cast<download_t*>(ctx);
 
@@ -173,17 +187,6 @@ int LoadAndBurnCallback(void* data, size_t len, void* arg) {
   return TftpCallback(data, len, download);
 }
 
-static void Debug(int port) {
-  printf("starting fletch-vm...\n");
-  FletchSetup();
-
-  printf("wainting for debug connection on port: %i\n", port);
-  FletchWaitForDebuggerConnection(port);
-
-  printf("vm exit");
-  FletchTearDown();
-}
-
 }  // namespace
 
 void LoaderInit() {
@@ -210,6 +213,8 @@ int LoadSnapshotFromFlash(const char* name) {
 }
 
 int DebugSnapshot(int port) {
-  Debug(port);
+    thread_resume(
+      thread_create("fletch dbg-vm", &LiveDebug, new int(port),
+                    DEFAULT_PRIORITY, 8192));
   return 0;
 }

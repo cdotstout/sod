@@ -56,6 +56,10 @@ fletch-reset: fletch-tool
 fletch-session: fletch-reset
 	$(FLETCH_TOOL_DIR)fletch create session sodff with file dart/fletch-settings
 
+fletch-debug-qemu: fletch-session
+	$(FLETCH_TOOL_DIR)fletch attach in session sodff tcp_socket 0.0.0.0:4567
+	$(FLETCH_TOOL_DIR)fletch debug ${ARGS} in session sodff
+
 %.snap: %.dart fletch-session
 	$(FLETCH_TOOL_DIR)fletch export $< to $@ in session sodff
 
