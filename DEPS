@@ -17,8 +17,8 @@ vars = {
 
   # Fletch repo and dependencies.
   "fletch_rev": "@f48fff20748fbf91952fc05370c578e18731578f",
-  "gyp_rev": "@6ee91ad8659871916f9aa840d42e1513befdf638",
-  "dart_rev": "@34357cdad108dcba734949bd13bd28c76ea285e0",
+  "gyp_rev": "@2b086540aeedaf4d233766fd14fb674af1bc321d",
+  "dart_rev": "@a5163f3595ccc4f41147a552c31c33090fe3970b",
   "persistent_rev": "@55daae1a038188c49e36a64e7ef132c4861da3d8",
   "charcode_tag": "@1.1.0",
   "path_tag": "@1.3.6",
