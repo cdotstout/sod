@@ -30,7 +30,7 @@ vars = {
 
 deps = {
   "sod/third_party/lk":
-      (Var("github_url") % "travisg/lk") + Var("lk_rev"),
+      (Var("github_url") % "littlekernel/lk") + Var("lk_rev"),
 
   # Fletch repo and dependencies.
   "sod/third_party/fletch":
