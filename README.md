@@ -1,7 +1,7 @@
 # SoD
 Seeds of Decay (or Sky on Devices). A software stack for running
 [Dart](https://www.dartlang.org/) on small devices. It  combines
-[LK](https://github.com/travisg/lk) and [Fletch](https://github.com/dart-lang/fletch).
+[LK](https://github.com/littlekernel/lk) and [Fletch](https://github.com/dart-lang/fletch).
 
 
 ## Prerequisites
