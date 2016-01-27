@@ -15,8 +15,8 @@ vars = {
 
   "lk_rev": "@6b208387f5e44fdf19b47dd49cea5c153aadc270",
 
-  # Fletch repo and dependencies.
-  "fletch_rev": "@f48fff20748fbf91952fc05370c578e18731578f",
+  # Dartino repo and dependencies.
+  "dartino_rev": "@f4e73d8b83fff70995014731674b339492013271",
   "gyp_rev": "@2b086540aeedaf4d233766fd14fb674af1bc321d",
   "dart_rev": "@a5163f3595ccc4f41147a552c31c33090fe3970b",
   "persistent_rev": "@55daae1a038188c49e36a64e7ef132c4861da3d8",
@@ -34,7 +34,7 @@ deps = {
 
   # Fletch repo and dependencies.
   "sod/third_party/fletch":
-      (Var("github_url") % "dart-lang/fletch") + Var("fletch_rev"),
+      (Var("github_url") % "dartino/sdk") + Var("dartino_rev"),
 
   "sod/third_party/fletch/third_party/gyp":
       Var('chromium_git') + '/external/gyp.git' + Var("gyp_rev"),
