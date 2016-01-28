@@ -32,44 +32,41 @@ deps = {
   "sod/third_party/lk":
       (Var("github_url") % "littlekernel/lk") + Var("lk_rev"),
 
-  # Fletch repo and dependencies.
-  "sod/third_party/fletch":
+  # Dartino repo and dependencies.
+  "sod/third_party/dartino":
       (Var("github_url") % "dartino/sdk") + Var("dartino_rev"),
 
-  "sod/third_party/fletch/third_party/gyp":
+  "sod/third_party/dartino/third_party/gyp":
       Var('chromium_git') + '/external/gyp.git' + Var("gyp_rev"),
 
-  "sod/third_party/fletch/third_party/dart":
+  "sod/third_party/dartino/third_party/dart":
       (Var("github_mirror") % "sdk") + Var("dart_rev"),
 
-  "fletch/third_party/pub_semver":
-      (Var("github_mirror") % "pub_semver") + Var("pub_semver_tag"),
-
-  "sod/third_party/fletch/third_party/persistent":
+  "sod/third_party/dartino/third_party/persistent":
       (Var("github_url") % "polux/persistent") + Var("persistent_rev"),
 
-  "sod/third_party/fletch/third_party/charcode":
+  "sod/third_party/dartino/third_party/charcode":
       (Var("github_mirror") % "charcode") + Var("charcode_tag"),
 
-  "sod/third_party/fletch/third_party/path":
+  "sod/third_party/dartino/third_party/path":
       (Var("github_mirror") % "path") + Var("path_tag"),
 
-  "sod/third_party/fletch/third_party/package_config":
+  "sod/third_party/dartino/third_party/package_config":
       (Var("github_mirror") % "package_config") + Var("package_config_tag"),
 
-  "sod/third_party/fletch/third_party/collection":
+  "sod/third_party/dartino/third_party/collection":
       (Var("github_mirror") % "collection") + Var("collection_rev"),
 
-  "sod/third_party/fletch/third_party/dart2js_info":
+  "sod/third_party/dartino/third_party/dart2js_info":
       "https://github.com/dart-lang/dart2js_info.git" + Var("dart2js_info_rev"),
 
-  "sod/third_party/fletch/third_party/pub_semver":
+  "sod/third_party/dartino/third_party/pub_semver":
       (Var("github_mirror") % "pub_semver") + Var("pub_semver_tag"),
 }
 
 hooks = [
   {
-    'name': 'fletch_third_party_libs',
+    'name': 'dartino_third_party_libs',
     'pattern': '.',
     'action': [
       'download_from_google_storage',
@@ -80,11 +77,11 @@ hooks = [
       '-d',
       '-r',
       '--auto_platform',
-      'sod/third_party/fletch/third_party/libs',
+      'sod/third_party/dartino/third_party/libs',
     ],
   },
   {
-    'name': 'fletch_third_party_binaries',
+    'name': 'dartino_third_party_binaries',
     'pattern': '.',
     'action': [
       'download_from_google_storage',
@@ -95,7 +92,7 @@ hooks = [
       '-d',
       '-r',
       '--auto_platform',
-      'sod/third_party/fletch/third_party/bin',
+      'sod/third_party/dartino/third_party/bin',
     ],
   },
   {

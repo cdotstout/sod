@@ -14,7 +14,7 @@ disco:
 	$(MAKE) -f third_party/lk/makefile stm32f746g-disco-fletch
 
 dartuino:
-	$(MAKE) -f third_party/lk/makefile dartuino-p0-fletch	
+	$(MAKE) -f third_party/lk/makefile dartuino-p0-fletch
 
 # build and run lk for qemu with a display
 qemu-run: qemu
@@ -45,27 +45,27 @@ disco-flash: disco
 		-c "program out/build-stm32f746g-disco-fletch/lk.bin reset exit 0x08000000"
 
 # support for building Fletch snapshots from dart files
-FLETCH_TOOL_DIR = third_party/fletch/out/ReleaseIA32/
+DARTINO_TOOL_DIR = third_party/dartino/out/ReleaseIA32/
 
-fletch-tool:
-	ninja -C third_party/fletch/ && ninja -C $(FLETCH_TOOL_DIR)
+dartino-tool:
+	ninja -C third_party/dartino/ && ninja -C $(DARTINO_TOOL_DIR)
 
-fletch-reset: fletch-tool
-	$(FLETCH_TOOL_DIR)fletch quit
+dartino-reset: dartino-tool
+	$(DARTINO_TOOL_DIR)fletch quit
 
-fletch-session: fletch-reset
-	$(FLETCH_TOOL_DIR)fletch create session sodff with file dart/fletch-settings
+dartino-session: dartino-reset
+	$(DARTINO_TOOL_DIR)fletch create session sodff with file dart/fletch-settings
 
-fletch-debug-qemu: fletch-session
-	$(FLETCH_TOOL_DIR)fletch attach in session sodff tcp_socket 0.0.0.0:4567
-	$(FLETCH_TOOL_DIR)fletch debug ${ARGS} in session sodff
+dartino-debug-qemu: dartino-session
+	$(DARTINO_TOOL_DIR)fletch attach in session sodff tcp_socket 0.0.0.0:4567
+	$(DARTINO_TOOL_DIR)fletch debug ${ARGS} in session sodff
 
-%.snap: %.dart fletch-session
-	$(FLETCH_TOOL_DIR)fletch export $< to $@ in session sodff
+%.snap: %.dart dartino-session
+	$(DARTINO_TOOL_DIR)fletch export $< to $@ in session sodff
 
 clean:
 	rm -rf out
 
-.PHONY: all lk clean disco disco-flash qemu qemu-run fletch-tool fletch-reset fletch-session
+.PHONY: all lk clean disco disco-flash qemu qemu-run dartino-tool dartino-reset dartino-session
 
 # vim: set noexpandtab:
