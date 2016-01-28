@@ -23,5 +23,5 @@ cscope.*
 *.snap.info.json
 
 third_party/lk
-third_party/fletch
+third_party/dartino
 third_party/openocd/linux
