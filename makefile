@@ -65,6 +65,7 @@ dartino-debug-qemu: dartino-session
 
 clean:
 	rm -rf out
+	rm -rf third_party/dartino/out
 
 .PHONY: all lk clean disco disco-flash qemu qemu-run dartino-tool dartino-reset dartino-session
 
