@@ -20,3 +20,4 @@ WITH_CPP_SUPPORT=true
 
 #WITH_LINKER_GC := 0
 
+include project/virtual/fs.mk

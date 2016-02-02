@@ -11,8 +11,7 @@
 
 #include <platform.h>
 #include <kernel/thread.h>
-#include <target/fsconfig.h>
-#include <lib/fs/spifs.h>
+#include <lib/fs.h>
 
 #include <lib/bio.h>
 #include <lib/page_alloc.h>
@@ -108,7 +107,7 @@ void Burn(const char* device, download_t* download) {
 
   // Create an install path for the new binary.
   char install_path[kFnameSize];
-  snprintf(install_path, kFnameSize, "%s/%s", SPIFS_MOUNT_POINT,
+  snprintf(install_path, kFnameSize, "%s/%s", "/spifs",
            download->name);
   printf("Installing '%s' to '%s'\n", download->name, install_path);
 

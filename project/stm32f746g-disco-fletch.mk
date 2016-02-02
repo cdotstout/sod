@@ -1,4 +1,5 @@
 include project/target/stm32f746g-disco.mk
+include project/virtual/fs.mk
 
 MODULES += app/fletch app/shell
 
