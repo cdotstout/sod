@@ -1,4 +1,5 @@
 include project/target/dartuinoP0.mk
+include project/virtual/fs.mk
 
 MODULES += app/fletch app/shell
 

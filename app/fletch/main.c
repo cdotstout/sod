@@ -120,8 +120,8 @@ usage:
     printf("Usage:\n");
     printf(" %s <filename>\n", argv[0].str);
     printf(" %s debug\n", argv[0].str);
-    printf(" %s run\n", argv[0].str);
-    printf(" %s write <filename>\n", argv[0].str);
+    printf(" %s run <filename>\n", argv[0].str);
+    printf(" %s install <filename>\n", argv[0].str);
     printf(" %s port_dump <name>\n", argv[0].str);
     return 0;
   }
@@ -132,7 +132,7 @@ usage:
   }
 
   if (strcmp(argv[1].str, "run") == 0) {
-    LoadSnapshotFromFlash(NULL);
+    LoadSnapshotFromFlash(argv[2].str);
     return 0;
   }
 
@@ -144,7 +144,7 @@ usage:
   }
 
   const char* filename = 0;
-  if (strcmp(argv[1].str, "write") == 0) {
+  if (strcmp(argv[1].str, "install") == 0) {
     if (argc != 3)
       goto usage;
     fletch_mode = MODE_BURN;
@@ -155,7 +155,7 @@ usage:
 
   printf("waiting for %s via TFTP. mode: %s\n",
          filename, 
-         fletch_mode == MODE_BURN ? "write" : "run");
+         fletch_mode == MODE_BURN ? "install" : "run");
 
   if (fletch_mode == MODE_RUN) {
     LoadSnapshotFromNetwork(filename);
