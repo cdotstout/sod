@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Fletch project authors. Please see the AUTHORS file
+// Copyright (c) 2016, the Dartino project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
@@ -28,7 +28,7 @@
 #if defined(WITH_LIB_CONSOLE)
 #include <lib/console.h>
 #else
-#error "fletch app needs a console"
+#error "dartino app needs a console"
 #endif
 
 void SensorsInit(void);
@@ -36,7 +36,7 @@ void SensorsInit(void);
 enum {
   MODE_RUN,
   MODE_BURN
-} fletch_mode;
+} dartino_mode;
 
 
 //////////////// Dart FFI setup ///////////////////////////////////////////////
@@ -65,20 +65,20 @@ static int GetHeight(gfx_surface* surface) {
 }
 
 
-FLETCH_EXPORT_TABLE_BEGIN
-FLETCH_EXPORT_TABLE_ENTRY("font_draw_char", font_draw_char)
-FLETCH_EXPORT_TABLE_ENTRY("gfx_create", GetFullscreenSurface)
-FLETCH_EXPORT_TABLE_ENTRY("gfx_width", GetWidth)
-FLETCH_EXPORT_TABLE_ENTRY("gfx_height", GetHeight)
-FLETCH_EXPORT_TABLE_ENTRY("gfx_destroy", gfx_surface_destroy)
-FLETCH_EXPORT_TABLE_ENTRY("gfx_pixel", gfx_putpixel)
-FLETCH_EXPORT_TABLE_ENTRY("gfx_line", gfx_line)
-FLETCH_EXPORT_TABLE_ENTRY("gfx_clear", gfx_clear)
-FLETCH_EXPORT_TABLE_ENTRY("gfx_flush", gfx_flush)
-FLETCH_EXPORT_TABLE_ENTRY("port_open", port_open)
-FLETCH_EXPORT_TABLE_ENTRY("port_close", port_open)
-FLETCH_EXPORT_TABLE_ENTRY("port_read", port_read)
-FLETCH_EXPORT_TABLE_END
+DARTINO_EXPORT_TABLE_BEGIN
+DARTINO_EXPORT_TABLE_ENTRY("font_draw_char", font_draw_char)
+DARTINO_EXPORT_TABLE_ENTRY("gfx_create", GetFullscreenSurface)
+DARTINO_EXPORT_TABLE_ENTRY("gfx_width", GetWidth)
+DARTINO_EXPORT_TABLE_ENTRY("gfx_height", GetHeight)
+DARTINO_EXPORT_TABLE_ENTRY("gfx_destroy", gfx_surface_destroy)
+DARTINO_EXPORT_TABLE_ENTRY("gfx_pixel", gfx_putpixel)
+DARTINO_EXPORT_TABLE_ENTRY("gfx_line", gfx_line)
+DARTINO_EXPORT_TABLE_ENTRY("gfx_clear", gfx_clear)
+DARTINO_EXPORT_TABLE_ENTRY("gfx_flush", gfx_flush)
+DARTINO_EXPORT_TABLE_ENTRY("port_open", port_open)
+DARTINO_EXPORT_TABLE_ENTRY("port_close", port_open)
+DARTINO_EXPORT_TABLE_ENTRY("port_read", port_read)
+DARTINO_EXPORT_TABLE_END
 
 //////////////// Port debug ///////////////////////////////////////////////////
 
@@ -114,7 +114,7 @@ static void DumpPort(const char* name) {
 
 //////////////// Shell handler ///////////////////////////////////////////////
 
-static int FletchRunner(int argc, const cmd_args* argv) {
+static int DartinoRunner(int argc, const cmd_args* argv) {
   if ((argc < 2) || (argc > 3)) {
 usage:
     printf("Usage:\n");
@@ -147,17 +147,17 @@ usage:
   if (strcmp(argv[1].str, "install") == 0) {
     if (argc != 3)
       goto usage;
-    fletch_mode = MODE_BURN;
+    dartino_mode = MODE_BURN;
     filename = argv[2].str;
   } else {
     filename = argv[1].str;
   }
 
   printf("waiting for %s via TFTP. mode: %s\n",
-         filename, 
-         fletch_mode == MODE_BURN ? "install" : "run");
+         filename,
+         dartino_mode == MODE_BURN ? "install" : "run");
 
-  if (fletch_mode == MODE_RUN) {
+  if (dartino_mode == MODE_RUN) {
     LoadSnapshotFromNetwork(filename);
   } else {
     AddSnapshotToFlash(filename);
@@ -166,7 +166,7 @@ usage:
 }
 
 static void ServicesInit(const struct app_descriptor* app) {
-  fletch_mode = MODE_RUN;
+  dartino_mode = MODE_RUN;
   SensorsInit();
   LoaderInit();
 }
@@ -178,7 +178,7 @@ APP_START(frun)
 APP_END
 
 STATIC_COMMAND_START
-STATIC_COMMAND("fletch", "fletch vm via tftp", &FletchRunner)
-STATIC_COMMAND_END(fletchrunner);
+STATIC_COMMAND("dartino", "dartino vm via tftp", &DartinoRunner)
+STATIC_COMMAND_END(dartinorunner);
 
 // vim: set expandtab ts=2 sw=2:

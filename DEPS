@@ -16,9 +16,12 @@ vars = {
   "lk_rev": "@177a43b0b1cdd122f5d1d351bdcd1fcc80630d64",
 
   # Dartino repo and dependencies.
-  "dartino_rev": "@f48fff20748fbf91952fc05370c578e18731578f",
-  "gyp_rev": "@2b086540aeedaf4d233766fd14fb674af1bc321d",
-  "dart_rev": "@a5163f3595ccc4f41147a552c31c33090fe3970b",
+  "dartino_rev": "@9851ee51cb6cad42dd027b554762baa575b29539",
+  "gyp_rev": "@6fb8bd829f0ca8fd432fd85ede788b6881c4f09f",
+  # This has to be in sync with the version used by dartino_rev above, as the
+  # dartino git repo contains sha1 files to download dart vm binaries from
+  # cloud storage.
+  "dart_rev": "@6eed25f3142039cdc92097c4db27c6cb312581d8",
   "persistent_rev": "@55daae1a038188c49e36a64e7ef132c4861da3d8",
   "charcode_tag": "@1.1.0",
   "path_tag": "@1.3.6",
@@ -66,21 +69,6 @@ deps = {
 
 hooks = [
   {
-    'name': 'dartino_third_party_libs',
-    'pattern': '.',
-    'action': [
-      'download_from_google_storage',
-      '--no_auth',
-      '--no_resume',
-      '--bucket',
-      'dart-dependencies-fletch',
-      '-d',
-      '-r',
-      '--auto_platform',
-      'sod/third_party/dartino/third_party/libs',
-    ],
-  },
-  {
     'name': 'dartino_third_party_binaries',
     'pattern': '.',
     'action': [
@@ -88,7 +76,7 @@ hooks = [
       '--no_auth',
       '--no_resume',
       '--bucket',
-      'dart-dependencies-fletch',
+      'dartino-dependencies',
       '-d',
       '-r',
       '--auto_platform',
@@ -103,7 +91,7 @@ hooks = [
       '--no_auth',
       '--no_resume',
       '--bucket',
-      'dart-dependencies-fletch',
+      'dartino-dependencies',
       '-d',
       '-r',
       '-u',

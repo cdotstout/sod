@@ -11,6 +11,6 @@ LKROOT := third_party/lk
 BUILDROOT ?= out
 
 # set the default project if no args are passed
-DEFAULT_PROJECT ?= stm32f746g-disco-fletch
+DEFAULT_PROJECT ?= stm32f746g-disco-dartino
 
 #TOOLCHAIN_PREFIX := <relative path to toolchain>

@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Fletch project authors. Please see the AUTHORS file
+// Copyright (c) 2015, the Dartino project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
@@ -17,7 +17,7 @@
 #include <lib/page_alloc.h>
 #include <lib/tftp.h>
 
-#include <include/fletch_api.h>
+#include <include/dartino_api.h>
 
 const size_t kDownloadSlotSize = (512 * 1024);
 const size_t kFnameSize = 32;
@@ -53,41 +53,41 @@ download_t* MakeDownload(const char* name) {
 
 static int LiveDebug(void* ctx) {
   int port = *reinterpret_cast<int*>(ctx);
-  printf("starting fletch-vm...\n");
-  FletchSetup();
+  printf("starting dartino-vm...\n");
+  DartinoSetup();
 
-  printf("ready for fletch debug via port: %i\n", port);
+  printf("ready for dartino debug via port: %i\n", port);
   while (true) {
-    FletchWaitForDebuggerConnection(port);
+    DartinoWaitForDebuggerConnection(port);
   }
 
-  FletchTearDown();
+  DartinoTearDown();
   return 0;
 }
 
 int RunSnapshot(void* ctx) {
   download_t* d = reinterpret_cast<download_t*>(ctx);
 
-  printf("starting fletch-vm...\n");
-  FletchSetup();
+  printf("starting dartino-vm...\n");
+  DartinoSetup();
 
   int len = (d->end - d->start);
   printf("loading snapshot: %d bytes ...\n", len);
-  FletchProgram program = FletchLoadSnapshot(d->start, len);
+  DartinoProgram program = DartinoLoadSnapshot(d->start, len);
 
   printf("running program...\n");
 
   lk_bigtime_t start = current_time_hires();
-  int result = FletchRunMain(program);
+  int result = DartinoRunMain(program);
 
   lk_bigtime_t elapsed = current_time_hires() - start;
-  printf("fletch-vm ran for %llu usecs\n", elapsed);
+  printf("dartino-vm ran for %llu usecs\n", elapsed);
 
-  FletchDeleteProgram(program);
+  DartinoDeleteProgram(program);
 
-  printf("tearing down fletch-vm...\n");
+  printf("tearing down dartino-vm...\n");
   printf("vm exit code: %i\n", result);
-  FletchTearDown();
+  DartinoTearDown();
 
   return result;
 }
@@ -158,7 +158,7 @@ exit:
 
 static void LiveRun(download_t* download) {
   thread_resume(
-      thread_create("fletch vm", &RunSnapshot, download,
+      thread_create("dartino vm", &RunSnapshot, download,
                     DEFAULT_PRIORITY, 8192));
 }
 
@@ -269,7 +269,7 @@ int LoadSnapshotFromFlash(const char* name) {
 
 int DebugSnapshot(int port) {
     thread_resume(
-      thread_create("fletch dbg-vm", &LiveDebug, new int(port),
+      thread_create("dartino dbg-vm", &LiveDebug, new int(port),
                     DEFAULT_PRIORITY, 8192));
   return 0;
 }

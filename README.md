@@ -1,7 +1,7 @@
 # SoD
 Seeds of Decay (or Sky on Devices). A software stack for running
-[Dart](https://www.dartlang.org/) on small devices. It  combines
-[LK](https://github.com/littlekernel/lk) and [Fletch](https://github.com/dart-lang/fletch).
+[Dart](https://www.dartlang.org/) on small devices. It combines
+[LK](https://github.com/littlekernel/lk) and [Dartino](https://dartino.org).
 
 
 ## Prerequisites
@@ -28,9 +28,9 @@ Assuming that you have qemu and you cd into sod directory:
 
     sod$ make qemu-run
     
-You should see no errors and "generating image: out/build-qemu-virt-fletch/lk.bin" as one of the last lines in the output. Then you should see the LK console starting, with "welcome to lk/MP". Then press enter and at the ']' prompt type:
+You should see no errors and "generating image: out/build-qemu-virt-dartino/lk.bin" as one of the last lines in the output. Then you should see the LK console starting, with "welcome to lk/MP". Then press enter and at the ']' prompt type:
 
-    ] fletch lines.snap
+    ] dartino lines.snap
 
 Then you should see "waiting for lines.snap via TFTP. mode: run".  Open another console, cd into the sod directory:
 

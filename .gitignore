@@ -16,7 +16,7 @@ cscope.*
 *~
 *.pyc
 *.class
-*.fletch
+*.dartino
 
 *.snap
 *.snap.info.bin

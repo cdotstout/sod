@@ -7,19 +7,19 @@ lk:
 
 # build lk for qemu
 qemu:
-	$(MAKE) -f third_party/lk/makefile qemu-virt-fletch
+	$(MAKE) -f third_party/lk/makefile qemu-virt-dartino
 
 # build lk for the disco dev boards
 disco:
-	$(MAKE) -f third_party/lk/makefile stm32f746g-disco-fletch
+	$(MAKE) -f third_party/lk/makefile stm32f746g-disco-dartino
 
 dartuino:
-	$(MAKE) -f third_party/lk/makefile dartuino-p0-fletch
+	$(MAKE) -f third_party/lk/makefile dartuino-p0-dartino
 
 # build and run lk for qemu with a display
 qemu-run: qemu
 	qemu-system-arm -machine virt -cpu cortex-a15 \
-		-m 12 -kernel out/build-qemu-virt-fletch/lk.elf \
+		-m 12 -kernel out/build-qemu-virt-dartino/lk.elf \
 		-device virtio-gpu-device -serial stdio \
 		-netdev user,id=vmnic,hostname=qemu -device virtio-net-device,netdev=vmnic \
 		-redir udp:10069::69 \
@@ -42,26 +42,26 @@ disco-flash: disco
 		-f interface/stlink-v2-1.cfg \
 		-f board/stm32756g_eval.cfg \
 		--search $(OPENOCD_DIR)/share/openocd/scripts \
-		-c "program out/build-stm32f746g-disco-fletch/lk.bin reset exit 0x08000000"
+		-c "program out/build-stm32f746g-disco-dartino/lk.bin reset exit 0x08000000"
 
-# support for building Fletch snapshots from dart files
+# support for building Dartino snapshots from dart files
 DARTINO_TOOL_DIR = third_party/dartino/out/ReleaseIA32/
 
 dartino-tool:
-	ninja -C third_party/dartino/ && ninja -C $(DARTINO_TOOL_DIR)
+	ninja -C third_party/dartino/ && ninja -C $(DARTINO_TOOL_DIR) toplevel_dartino
 
 dartino-reset: dartino-tool
-	$(DARTINO_TOOL_DIR)fletch quit
+	$(DARTINO_TOOL_DIR)dartino quit
 
 dartino-session: dartino-reset
-	$(DARTINO_TOOL_DIR)fletch create session sodff with file dart/fletch-settings
+	$(DARTINO_TOOL_DIR)dartino create session sodff with file dart/dartino-settings
 
 dartino-debug-qemu: dartino-session
-	$(DARTINO_TOOL_DIR)fletch attach in session sodff tcp_socket 0.0.0.0:4567
-	$(DARTINO_TOOL_DIR)fletch debug ${ARGS} in session sodff
+	$(DARTINO_TOOL_DIR)dartino attach in session sodff tcp_socket 0.0.0.0:4567
+	$(DARTINO_TOOL_DIR)dartino debug ${ARGS} in session sodff
 
 %.snap: %.dart dartino-session
-	$(DARTINO_TOOL_DIR)fletch export $< to $@ in session sodff
+	$(DARTINO_TOOL_DIR)dartino export $< to $@ in session sodff
 
 clean:
 	rm -rf out
