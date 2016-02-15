@@ -12,10 +12,12 @@ onTimer(Timer timer) {
   print("on timer $count");
 
   if (count == 10) {
+    print("Cancelling timer...");
     timer.cancel();
   }
 }
 
 void main() {
+  print("Starting timer...");
   new Timer.periodic(const Duration(seconds: 1), onTimer);
 }

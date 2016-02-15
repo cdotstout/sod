@@ -22,6 +22,7 @@
 #include <lib/gfx.h>
 
 #include <include/static_ffi.h>
+#include <include/dartino_api.h>
 
 #include "loader.h"
 
@@ -112,12 +113,44 @@ static void DumpPort(const char* name) {
   port_close(port);
 }
 
+//////////////////// Starting/Stopping the VM ///////////////////////////////
+
+static bool dartino_vm_was_started = false;
+
+static void StartVM(void) {
+  if (!dartino_vm_was_started) {
+    printf("Starting dartino-vm...\n");
+    DartinoSetup();
+    dartino_vm_was_started = true;
+  } else {
+    printf("dartino-vm already running...\n");
+  }
+}
+
+static void ShutdownVM(void) {
+  if (dartino_vm_was_started) {
+    printf("Stopping dartino-vm...\n");
+    DartinoTearDown();
+    dartino_vm_was_started = false;
+  } else {
+    printf("dartino-vm has not been started...\n");
+  }
+}
+
+#define ENSURE_VM_IS_RUNNING(cmd)                                    \
+if (!dartino_vm_was_started) {                                       \
+  printf("Command %s requires a running VM.\n", cmd);                \
+  return 0;                                                          \
+}
+
 //////////////// Shell handler ///////////////////////////////////////////////
 
 static int DartinoRunner(int argc, const cmd_args* argv) {
   if ((argc < 2) || (argc > 3)) {
 usage:
     printf("Usage:\n");
+    printf(" %s start\n", argv[0].str);
+    printf(" %s stop\n", argv[0].str);
     printf(" %s <filename>\n", argv[0].str);
     printf(" %s debug\n", argv[0].str);
     printf(" %s run <filename>\n", argv[0].str);
@@ -126,12 +159,24 @@ usage:
     return 0;
   }
 
+  if (strcmp(argv[1].str, "start") == 0) {
+    StartVM();
+    return 0;
+  }
+
+  if (strcmp(argv[1].str, "stop") == 0) {
+    ShutdownVM();
+    return 0;
+  }
+
   if (strcmp(argv[1].str, "debug") == 0) {
+    ENSURE_VM_IS_RUNNING("debug");
     DebugSnapshot(4567);
     return 0;
   }
 
   if (strcmp(argv[1].str, "run") == 0) {
+    ENSURE_VM_IS_RUNNING("run");
     LoadSnapshotFromFlash(argv[2].str);
     return 0;
   }
@@ -150,6 +195,7 @@ usage:
     dartino_mode = MODE_BURN;
     filename = argv[2].str;
   } else {
+    ENSURE_VM_IS_RUNNING("");
     filename = argv[1].str;
   }
 

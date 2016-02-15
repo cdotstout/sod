@@ -53,43 +53,54 @@ download_t* MakeDownload(const char* name) {
 
 static int LiveDebug(void* ctx) {
   int port = *reinterpret_cast<int*>(ctx);
-  printf("starting dartino-vm...\n");
-  DartinoSetup();
 
   printf("ready for dartino debug via port: %i\n", port);
   while (true) {
     DartinoWaitForDebuggerConnection(port);
   }
 
-  DartinoTearDown();
   return 0;
 }
 
-int RunSnapshot(void* ctx) {
-  download_t* d = reinterpret_cast<download_t*>(ctx);
+static void RunFinishedCallback(DartinoProgram* program, int exitcode,
+                                void* data) {
+  lk_bigtime_t start = reinterpret_cast<lk_bigtime_t>(data);
+  lk_bigtime_t elapsed = current_time_hires() - start;
+  printf("dartino-vm ran for %llu usecs, returned %d\n", elapsed, exitcode);
+}
 
-  printf("starting dartino-vm...\n");
-  DartinoSetup();
+typedef struct {
+  download_t* download;
+  DartinoProgram program;
+} program_gen_msg_t;
 
-  int len = (d->end - d->start);
+static int ProgramGenerator(void* arg) {
+  program_gen_msg_t* data = reinterpret_cast<program_gen_msg_t*>(arg);
+  int len = (data->download->end - data->download->start);
+
   printf("loading snapshot: %d bytes ...\n", len);
-  DartinoProgram program = DartinoLoadSnapshot(d->start, len);
+  data->program = DartinoLoadSnapshot(data->download->start, len);
+
+  thread_exit(0);
+}
+
+int StartSnapshotFromDownload(download_t* download) {
+  program_gen_msg_t msg;
+  msg.download = download;
+
+  // Offload the snapshot loading to a separate thread to increase stack size.
+  thread_t* generator =
+      thread_create("prggen", &ProgramGenerator, &msg, DEFAULT_PRIORITY, 8192);
+  thread_resume(generator);
+  thread_join(generator, NULL, INFINITE_TIME);
 
   printf("running program...\n");
 
   lk_bigtime_t start = current_time_hires();
-  int result = DartinoRunMain(program);
+  DartinoStartMain(msg.program, &RunFinishedCallback,
+                   reinterpret_cast<void*>(start));
 
-  lk_bigtime_t elapsed = current_time_hires() - start;
-  printf("dartino-vm ran for %llu usecs\n", elapsed);
-
-  DartinoDeleteProgram(program);
-
-  printf("tearing down dartino-vm...\n");
-  printf("vm exit code: %i\n", result);
-  DartinoTearDown();
-
-  return result;
+  return 0;
 }
 
 void Burn(const char* device, download_t* download) {
@@ -156,12 +167,6 @@ exit:
   }
 }
 
-static void LiveRun(download_t* download) {
-  thread_resume(
-      thread_create("dartino vm", &RunSnapshot, download,
-                    DEFAULT_PRIORITY, 8192));
-}
-
 void FlashRun(const char* device, const char* filename) {
   filehandle *handle;
   status_t result = fs_open_file(filename, &handle);
@@ -204,8 +209,8 @@ void FlashRun(const char* device, const char* filename) {
   download->end = download->start + len;
   strncpy(download->name, filename, kFnameSize);
 
-  LiveRun(download);
-  return;  
+  StartSnapshotFromDownload(download);
+  return;
 }
 
 int TftpCallback(void* data, size_t len, download_t* download) {
@@ -227,7 +232,7 @@ int TftpCallback(void* data, size_t len, download_t* download) {
 int LoadAndRunCallback(void* data, size_t len, void* arg) {
   download_t* download = reinterpret_cast<download_t*>(arg);
   if (!data) {
-    LiveRun(download);
+    StartSnapshotFromDownload(download);
     return 0;
   }
   return TftpCallback(data, len, download);
