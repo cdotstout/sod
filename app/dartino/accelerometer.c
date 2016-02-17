@@ -10,7 +10,7 @@
 #define SENSOR_PUBLISHER_DEFAULT_STACK_SIZE (512)
 
 // Accelerometer publisher will write data to this port when data is requested.
-const char port_name[] = "sys/io/accel";
+#define ACCELEROMETER_PORT_NAME ("sys/io/acc")
 
 static event_t accelerometer_event = 
 	EVENT_INITIAL_VALUE(accelerometer_event, false, EVENT_FLAG_AUTOUNSIGNAL);
@@ -30,8 +30,16 @@ static int accelerometer_publisher_worker_thread(void *argv)
 	status_t result;
 	port_t acc_port;
 
+	result = port_create(ACCELEROMETER_PORT_NAME, PORT_MODE_BROADCAST, &acc_port);
+
+
 	// TODO(gkalsi): Check the result here.
-    result = port_open(port_name, NULL, &acc_port);
+    // result = port_open(port_name, NULL, &acc_port);
+    if (result != NO_ERROR) {
+    	printf("port_open failed for port = \"%s\", status = %d\n", 
+    		   ACCELEROMETER_PORT_NAME, result);
+    	return result;
+    }
 
 	while(true) {
 		result = event_wait(&accelerometer_event);
@@ -64,6 +72,8 @@ static int accelerometer_publisher_worker_thread(void *argv)
 
 void accelerometer_init(void) 
 {
+	// status_t result = port_create(port_name, PORT_MODE_UNICAST, port_t* port);
+
 	// TODO(gkalsi): Probably also a good place to check if an accelerometer
 	// exists and bail if it doesn't.
 
