@@ -4,27 +4,16 @@
 
 import 'dart:dartino';
 import 'dart:dartino.os';
-
-final String lk_sw = "sys/io/accel";
-
-void ButtonHandler(Channel channel) {
-  while (true) {
-    var value = channel.receive();
-    print("pressed $value");
-  }
-}
+import 'package:lk/accelerometer.dart';
 
 main() {
-  Channel channel = new Channel();
-  Port port = new Port(channel);
+  Accelerometer accelerometer = new Accelerometer();
 
-  try {
-    eventHandler.registerPortForNextEvent(lk_sw, port, READ_EVENT);
-  } on ArgumentError catch (error) {
-    print("Argument Error: $error");
-  } on StateError catch (error) {
-    print("State Error: $error");
+  while(true) {
+    PositionVector v = accelerometer.read();
+    if (v == null) {
+      continue;
+    }
+    print("x: ${v.x} y: ${v.y}, z: ${v.z}");
   }
-
-  Fiber.fork(() => ButtonHandler(channel));
 }
