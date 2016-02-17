@@ -17,7 +17,7 @@ class PositionVector {
 
 class Accelerometer {
 
-  static final String _accelPortName = "sys/io/acc";
+  final String _accelPortName = "sys/io/acc";
 
   static ForeignFunction _request_data =
       ForeignLibrary.main.lookup('accelerometer_request_data');
@@ -45,7 +45,7 @@ class Accelerometer {
     }
 
     // Read and return the position vector result.
-    PositionVector result;
+    PositionVector result = new PositionVector();
     result.x = _channel.receive();
     result.y = _channel.receive();
     result.z = _channel.receive();
