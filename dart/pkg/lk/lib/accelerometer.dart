@@ -17,7 +17,7 @@ class PositionVector {
 
 class Accelerometer {
 
-  static final _accelPortName = "sys/io/accel"
+  static final _accelPortName = "sys/io/accel";
 
   static ForeignFunction _request_data =
       ForeignLibrary.main.lookup('accelerometer_request_data');
@@ -27,7 +27,7 @@ class Accelerometer {
 
   Accelerometer() {
     _channel = new Channel();
-    _port = new Port();
+    _port = new Port(_channel);
 
     eventHandler.registerPortForNextEvent(_accelPortName, _port, READ_EVENT);
   }
@@ -39,16 +39,16 @@ class Accelerometer {
     }
 
     // Read the first packet from the channel.
-    var val = channel.receive();
+    var val = _channel.receive();
     if (val != NO_ERROR) {
       return null;
     }
 
     // Read and return the position vector result.
     PositionVector result;
-    result.x = channel.receive();
-    result.y = channel.receive();
-    result.z = channel.receive();
+    result.x = _channel.receive();
+    result.y = _channel.receive();
+    result.z = _channel.receive();
 
     return result;
   }
