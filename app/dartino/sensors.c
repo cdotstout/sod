@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 #include <kernel/port.h>
+#include "accelerometer.h"
 
 #if !defined(TARGET_QEMU_VIRT)
 #include <dev/gpio.h>
@@ -66,6 +67,7 @@ void stm32_EXTI15_10_IRQ(void) {
 void SensorsInit(void) {
   port_create(SWITCH_PORT_NAME, PORT_MODE_BROADCAST, &switch_port);
   HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+  accelerometer_init();
 }
 
 #else

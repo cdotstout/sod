@@ -25,6 +25,7 @@
 #include <include/dartino_api.h>
 
 #include "loader.h"
+#include "accelerometer.h"
 
 #if defined(WITH_LIB_CONSOLE)
 #include <lib/console.h>
@@ -79,6 +80,8 @@ DARTINO_EXPORT_TABLE_ENTRY("gfx_flush", gfx_flush)
 DARTINO_EXPORT_TABLE_ENTRY("port_open", port_open)
 DARTINO_EXPORT_TABLE_ENTRY("port_close", port_open)
 DARTINO_EXPORT_TABLE_ENTRY("port_read", port_read)
+DARTINO_EXPORT_TABLE_ENTRY("accelerometer_request_data",
+                           accelerometer_request_data)
 DARTINO_EXPORT_TABLE_END
 
 //////////////// Port debug ///////////////////////////////////////////////////
