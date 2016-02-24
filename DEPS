@@ -13,10 +13,10 @@ vars = {
 
   "chromium_git": "https://chromium.googlesource.com",
 
-  "lk_rev": "@52f4728c444b20979e92f8287a2d863cdf802486",
+  "lk_rev": "@42e76b1fc796e99575e0e7e5187b1ffa8b0c80a9",
 
   # Dartino repo and dependencies.
-  "dartino_rev": "@68c43b691ae44671d39854a0690bfe09d4bc83a5",
+  "dartino_rev": "@b5957258cae4419d30a7be8f78b1461513c3770e",
   "gyp_rev": "@6fb8bd829f0ca8fd432fd85ede788b6881c4f09f",
   # This has to be in sync with the version used by dartino_rev above, as the
   # dartino git repo contains sha1 files to download dart vm binaries from

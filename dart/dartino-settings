@@ -1,6 +1,6 @@
 {
   "packages": ".packages",
-  "options": ["--verbose"],
+  "options": [""],
   "constants": {},
   "device_address": null
 }

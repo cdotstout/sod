@@ -62,7 +62,7 @@ static int LiveDebug(void* ctx) {
   return 0;
 }
 
-static void RunFinishedCallback(DartinoProgram* program, int exitcode,
+static void RunFinishedCallback(DartinoProgram program, int exitcode,
                                 void* data) {
   lk_bigtime_t start = reinterpret_cast<lk_bigtime_t>(data);
   lk_bigtime_t elapsed = current_time_hires() - start;
@@ -98,7 +98,7 @@ int StartSnapshotFromDownload(download_t* download) {
 
   lk_bigtime_t start = current_time_hires();
   DartinoStartMain(msg.program, &RunFinishedCallback,
-                   reinterpret_cast<void*>(start));
+                   reinterpret_cast<void*>(start), 0, NULL);
 
   return 0;
 }
