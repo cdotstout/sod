@@ -30,6 +30,7 @@ Assuming that you have qemu and you cd into sod directory:
     
 You should see no errors and "generating image: out/build-qemu-virt-dartino/lk.bin" as one of the last lines in the output. Then you should see the LK console starting, with "welcome to lk/MP". Then press enter and at the ']' prompt type:
 
+    ] dartino start 
     ] dartino lines.snap
 
 Then you should see "waiting for lines.snap via TFTP. mode: run".  Open another console, cd into the sod directory:
