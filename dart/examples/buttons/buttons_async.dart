@@ -4,27 +4,27 @@
 
 import 'dart:dartino';
 import 'dart:dartino.os';
+import 'package:lk/ports.dart';
 
 final String lk_sw = "sys/io/sw";
 
-void ButtonHandler(Channel channel) {
+void ButtonHandler(ReadPort port) {
   while (true) {
-    var value = channel.receive();
+    var value = port.read();
     print("pressed $value");
   }
 }
 
 main() {
-  Channel channel = new Channel();
-  Port port = new Port(channel);
+  ReadPort port;
 
   try {
-    eventHandler.registerPortForNextEvent(lk_sw, port, READ_EVENT);
+    port = new ReadPort(lk_sw);
   } on ArgumentError catch (error) {
     print("Argument Error: $error");
   } on StateError catch (error) {
     print("State Error: $error");
   }
 
-  Fiber.fork(() => ButtonHandler(channel));
+  Fiber.fork(() => ButtonHandler(port));
 }

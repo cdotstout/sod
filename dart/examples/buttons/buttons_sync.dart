@@ -5,20 +5,18 @@
 import 'package:lk/ports.dart';
 
 main () {
-  var buttons_port = new LKReadPort("sys/io/sw");
-  var packet = new PortPacket();
+  var buttons_port = new ReadPortSync("sys/io/sw");
 
   print("looping ..");
 
   int n = 0;
   while(n != 10) {
-    int status = buttons_port.read(packet, -1);
-    if (status < 0) {
-      print("[$n] error: $status");
+    var packet = buttons_port.read();
+    if (packet == null) {
+      print("[$n] error reading packet.");
       break;
     }
-    var d = packet.data;
-    print("[$n] button: $d");
+    print("[$n] button: $packet");
   }
 
   buttons_port.close();

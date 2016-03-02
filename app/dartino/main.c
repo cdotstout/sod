@@ -76,9 +76,12 @@ DARTINO_EXPORT_TABLE_ENTRY("gfx_pixel", gfx_putpixel)
 DARTINO_EXPORT_TABLE_ENTRY("gfx_line", gfx_line)
 DARTINO_EXPORT_TABLE_ENTRY("gfx_clear", gfx_clear)
 DARTINO_EXPORT_TABLE_ENTRY("gfx_flush", gfx_flush)
+DARTINO_EXPORT_TABLE_ENTRY("port_create", port_create)
+DARTINO_EXPORT_TABLE_ENTRY("port_destroy", port_destroy)
 DARTINO_EXPORT_TABLE_ENTRY("port_open", port_open)
 DARTINO_EXPORT_TABLE_ENTRY("port_close", port_open)
 DARTINO_EXPORT_TABLE_ENTRY("port_read", port_read)
+DARTINO_EXPORT_TABLE_ENTRY("port_write", port_write)
 DARTINO_EXPORT_TABLE_END
 
 //////////////// Port debug ///////////////////////////////////////////////////
