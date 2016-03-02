@@ -13,7 +13,8 @@ vars = {
 
   "chromium_git": "https://chromium.googlesource.com",
 
-  "lk_rev": "@42e76b1fc796e99575e0e7e5187b1ffa8b0c80a9",
+  "lk_rev": "@b587e426bdf9993e82b68f516325353fa36fb43a",
+  "gbskia_rev": "@9a1f76a97f9d175ae61a22ff405e2ef1dbe22f50",
 
   # Dartino repo and dependencies.
   "dartino_rev": "@b5957258cae4419d30a7be8f78b1461513c3770e",
@@ -34,6 +35,9 @@ vars = {
 deps = {
   "sod/third_party/lk":
       (Var("github_url") % "littlekernel/lk") + Var("lk_rev"),
+
+  "sod/third_party/lk/external/gbskia":
+      (Var("github_url") % "littlekernel/gbskia") + Var("gbskia_rev"),
 
   # Dartino repo and dependencies.
   "sod/third_party/dartino":
