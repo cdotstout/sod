@@ -13,8 +13,8 @@ vars = {
 
   "chromium_git": "https://chromium.googlesource.com",
 
-  "lk_rev": "@66b9d98a0e3d160712bd7d145b964523aa020a6f",
-  "gbskia_rev": "@0c7db2801df6c3e393266313f14aaad318a7f756",
+  "lk_rev": "@0c8d77f86aa3863af513a1fc685633e99e8a15ed",
+  "gbskia_rev": "@0926c6539d16c434bd21e149992ed0646fd465ad",
 
   # Dartino repo and dependencies.
   "dartino_rev": "@5cbae0ea6e4189ed7ea94684470643355cbab077",
