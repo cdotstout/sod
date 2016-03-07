@@ -19,10 +19,61 @@
 
 #include <include/dartino_api.h>
 
+#include "generate_flashtool_args.h"
+
 const size_t kDownloadSlotSize = (512 * 1024);
 const size_t kFnameSize = 32;
 
 namespace {
+
+DartinoProgramGroup ram_programs = 0;
+DartinoProgramGroup flash_programs = 0;
+
+// The below should be thread safe is this was for real...
+static int freeze_requests = 0;
+
+static void SetupLinearMode(const char* device) {
+  bdev_t* bd = bio_open(device);
+  if (!bd) {
+    printf("error opening %s\n", device);
+    abort();
+  }
+  unsigned char* unused = 0;
+  int rv = bio_ioctl(bd, BIO_IOCTL_GET_MEM_MAP, &unused);
+  if (rv < 0) {
+    printf("error %d in %s ioctl\n", rv, device);
+    abort();
+  }
+  bio_close(bd);
+}
+
+void SwitchFromLinearMode(const char* device) {
+  if (freeze_requests++ > 0) {
+    printf("Already in write-to-flash mode!\n");
+  } else {
+    bdev_t* bd = bio_open(device);
+    if (flash_programs) DartinoFreezeProgramGroup(flash_programs);
+    int rv = bio_ioctl(bd, BIO_IOCTL_PUT_MEM_MAP, NULL);
+    if (rv < 0) {
+      printf("error %d in %s ioctl\n", rv, device);
+      abort();
+    }
+    bio_close(bd);
+  }
+}
+
+void SwitchToLinearMode(const char* device) {
+  if (--freeze_requests > 0) {
+    printf("Still in run-from-flash mode!\n");
+  } else {
+    if (flash_programs) DartinoUnfreezeProgramGroup(flash_programs);
+    SetupLinearMode(device);
+  }
+}
+
+static bool IsInLinearMode(void) {
+  return freeze_requests == 0;
+}
 
 typedef struct {
   unsigned char* start;
@@ -74,6 +125,18 @@ typedef struct {
   DartinoProgram program;
 } program_gen_msg_t;
 
+static ssize_t GetFileSize(filehandle* handle) {
+  struct file_stat stats;
+  if (fs_stat_file(handle, &stats) != NO_ERROR) return 0;
+  return stats.size;
+}
+
+static ssize_t GetFileCapacity(filehandle* handle) {
+  struct file_stat stats;
+  if (fs_stat_file(handle, &stats) != NO_ERROR) return 0;
+  return stats.capacity;
+}
+
 static int ProgramGenerator(void* arg) {
   program_gen_msg_t* data = reinterpret_cast<program_gen_msg_t*>(arg);
   int len = (data->download->end - data->download->start);
@@ -97,6 +160,7 @@ int StartSnapshotFromDownload(download_t* download) {
   printf("running program...\n");
 
   lk_bigtime_t start = current_time_hires();
+  DartinoAddProgramToGroup(ram_programs, msg.program);
   DartinoStartMain(msg.program, &RunFinishedCallback,
                    reinterpret_cast<void*>(start), 0, NULL);
 
@@ -124,34 +188,44 @@ void Burn(const char* device, download_t* download) {
 
   ssize_t len = download->end - download->start;
 
-  filehandle *handle;
+  SwitchFromLinearMode(device);
+
+  filehandle* handle;
   status_t result = fs_create_file(
       install_path,
       &handle,
-      len + sizeof(len)
+      len
   );
 
+  ssize_t bytes;
   if (result == ERR_ALREADY_EXISTS) {
-    printf("A program already exists at this path. Please use another name or "
-           "delete the existing program and try again.\n");
-    return;
+    result = fs_open_file(install_path, &handle);
+    if (result != NO_ERROR) {
+      printf("A program already exists at this path but the file cannot be\n"
+             "opened for reading [%d]...\n", result);
+      goto exit;
+    }
+    if (GetFileCapacity(handle) < len) {
+      printf("A program already exists at %s but the file is too small.\n",
+             install_path);
+      goto exit;
+    }
+    if (GetFileSize(handle) > len) {
+      result = fs_truncate_file(handle, len);
+      if (result != NO_ERROR) {
+        printf("Truncating %s failed with %d.\n", install_path, result);
+        goto exit;
+      }
+    }
   } else if (result != NO_ERROR) {
-    printf("Creating a file failed with error %d. Aborting.\n", result);
-    return;
-  }
-
-  printf("Created a file at %s\n", install_path);
-
-  ssize_t bytes = fs_write_file(handle, &len, 0, sizeof(len));
-  if (bytes != sizeof(len)) {
-    printf("Could not write header for binary. Expected to write %d bytes "
-           "wrote %ld bytes instead. Aborting.\n", sizeof(len), bytes);
+    printf("Creating %s failed with error %d. Aborting.\n", install_path,
+           result);
     goto exit;
+  } else {
+    printf("Created a file at %s\n", install_path);
   }
 
-  printf("Wrote a %ld byte header for %s\n", bytes, install_path);
-
-  bytes = fs_write_file(handle, download->start, sizeof(len), len);
+  bytes = fs_write_file(handle, download->start, 0, len);
   if (bytes != len) {
     printf("Could not write snapshot data. Expected to write %ld bytes "
            "wrote %ld bytes instead. Aborting.\n", len, bytes);
@@ -165,10 +239,11 @@ exit:
   if (result != NO_ERROR) {
     printf("Error closing file. Status code = %d\n", result);
   }
+  SwitchToLinearMode(device);
 }
 
 void FlashRun(const char* device, const char* filename) {
-  filehandle *handle;
+  filehandle* handle;
   status_t result = fs_open_file(filename, &handle);
   if (result != NO_ERROR) {
     printf("Open file %s failed with status = %d. Aborting.\n",
@@ -183,33 +258,37 @@ void FlashRun(const char* device, const char* filename) {
            filename, result);
     // TODO(gkalsi): Close the file?
   }
-
-  bdev_t *bd = bio_open(device);
-  if (!bd) {
-    printf("error opening %s\n", device);
-    return;
-  }
-  unsigned char* unused = 0;
-  int rv = bio_ioctl(bd, BIO_IOCTL_GET_MEM_MAP, &unused);
-  if (rv < 0) {
-    printf("error %d in %s ioctl\n", rv, device);
-    return;
-  }
-
-  size_t len = *((size_t*)address);
+  size_t len = GetFileSize(handle);
   if (!len) {
     printf("invalid snapshot length\n");
     return;
   }
-  address += sizeof(len);
-  printf("snapshot at %p is %d bytes\n", address, len);
 
-  download_t* download = new download_t;
-  download->start = address;
-  download->end = download->start + len;
-  strncpy(download->name, filename, kFnameSize);
+  fs_close_file(handle);
 
-  StartSnapshotFromDownload(download);
+  if (!IsInLinearMode()) {
+    printf("Trying to start a program while not in linear mode. Try again...");
+    return;
+  }
+
+  printf("data at %p is %d bytes\n", address, len);
+
+  // First try to run this directly as a program heap
+  DartinoProgram program = DartinoLoadProgramFromFlash(address, len);
+  if (program != NULL) {
+    DartinoAddProgramToGroup(flash_programs, program);
+    printf("running program (heap-blob)...\n");
+    lk_bigtime_t start = current_time_hires();
+    DartinoStartMain(program, &RunFinishedCallback,
+                     reinterpret_cast<void*>(start), 0, NULL);
+  } else {
+    download_t* download = new download_t;
+    download->start = address;
+    download->end = download->start + len;
+    strncpy(download->name, filename, kFnameSize);
+
+    StartSnapshotFromDownload(download);
+  }
   return;
 }
 
@@ -251,6 +330,7 @@ int LoadAndBurnCallback(void* data, size_t len, void* arg) {
 
 void LoaderInit() {
   tftp_server_init(NULL);
+  SetupLinearMode("qspi-flash");
 }
 
 int LoadSnapshotFromNetwork(const char* name) {
@@ -277,4 +357,92 @@ int DebugSnapshot(int port) {
       thread_create("dartino dbg-vm", &LiveDebug, new int(port),
                     DEFAULT_PRIORITY, 8192));
   return 0;
+}
+
+void PrepareBlob(const char* file, const char* size_str) {
+  if (strstr(file, "/") != NULL) {
+    printf("Blob name may not contain a '/' Blob name is %s. Aborting", file);
+    return;
+  }
+  size_t len = atoi(size_str);
+  if (len <= 0) {
+    printf("Illegal size, parsed %s as %d. Aborting.", size_str, len);
+    return;
+  }
+
+  // Create an install path for the new binary.
+  char install_path[kFnameSize];
+  snprintf(install_path, kFnameSize, "%s/%s", "/spifs", file);
+  printf("Installing '%s' to '%s'\n", file, install_path);
+
+  SwitchFromLinearMode("qspi-flash");
+
+  filehandle* handle = 0;
+  unsigned char* address = 0;
+  status_t result = fs_create_file(
+      install_path,
+      &handle,
+      len
+  );
+
+  if (result == ERR_ALREADY_EXISTS) {
+    printf("A program already exists at this path. Please use another name or "
+           "delete the existing program and try again.\n");
+    goto exit;
+  } else if (result != NO_ERROR) {
+    printf("Creating a file failed with error %d. Aborting.\n", result);
+    goto exit;
+  }
+
+  result = fs_truncate_file(handle, 0);
+  if (result != NO_ERROR) {
+    printf("Truncating the file failed with %d.\n", result);
+  }
+  printf("Created a file at %s\n", install_path);
+
+  result = fs_file_ioctl(handle, FS_IOCTL_GET_FILE_ADDR, &address);
+  if (result != NO_ERROR) {
+    printf("Failed to get memory mapped address for %s. Status code = %d\n",
+           file, result);
+    goto exit;
+  }
+
+  printf("Now create a blob using flashtool, the command line is:\n\n");
+
+  {
+    const int kBufferSize = 256;
+    char* buffer = reinterpret_cast<char*>(malloc(kBufferSize));
+    GenerateFlashtoolArgs(buffer, kBufferSize, address, file);
+    printf("flashtool %s\n\n", buffer);
+    free(buffer);
+  }
+
+exit:
+  if (handle) {
+    result = fs_close_file(handle);
+    if (result != NO_ERROR) {
+      printf("Failed to close file %s. Error was %d.\n", file, result);
+    }
+  }
+
+  SwitchToLinearMode("qspi-flash");
+}
+
+void InitializeGroups() {
+  ram_programs = DartinoCreateProgramGroup("in_ram");
+  flash_programs = DartinoCreateProgramGroup("in_flash");
+  DartinoFreezeProgramGroup(flash_programs);
+}
+
+void DestroyGroups() {
+  DartinoDeleteProgramGroup(ram_programs);
+  DartinoDeleteProgramGroup(flash_programs);
+}
+
+void FreezeVM() {
+  SwitchFromLinearMode("qspi-flash");
+}
+
+void UnfreezeVM() {
+  SwitchToLinearMode("qspi-flash");
 }

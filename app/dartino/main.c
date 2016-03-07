@@ -124,6 +124,7 @@ static void StartVM(void) {
   if (!dartino_vm_was_started) {
     printf("Starting dartino-vm...\n");
     DartinoSetup();
+    InitializeGroups();
     dartino_vm_was_started = true;
   } else {
     printf("dartino-vm already running...\n");
@@ -133,6 +134,7 @@ static void StartVM(void) {
 static void ShutdownVM(void) {
   if (dartino_vm_was_started) {
     printf("Stopping dartino-vm...\n");
+    DestroyGroups();
     DartinoTearDown();
     dartino_vm_was_started = false;
   } else {
@@ -149,8 +151,15 @@ if (!dartino_vm_was_started) {                                       \
 //////////////// Shell handler ///////////////////////////////////////////////
 
 static int DartinoRunner(int argc, const cmd_args* argv) {
-  if ((argc < 2) || (argc > 3)) {
+  if ((argc < 2) || (argc > 4)) {
 usage:
+    if (argc > 1) {
+      printf("Illegal arguments: ");
+      for (int pos = 1; pos < argc; pos++) {
+        printf("%s ", argv[pos].str);
+      }
+      printf("\n\n");
+    }
     printf("Usage:\n");
     printf(" %s start\n", argv[0].str);
     printf(" %s stop\n", argv[0].str);
@@ -159,6 +168,9 @@ usage:
     printf(" %s run <filename>\n", argv[0].str);
     printf(" %s install <filename>\n", argv[0].str);
     printf(" %s port_dump <name>\n", argv[0].str);
+    printf(" %s prepareblob <name> <size>\n", argv[0].str);
+    printf(" %s freeze\n", argv[0].str);
+    printf(" %s unfreeze\n", argv[0].str);
     return 0;
   }
 
@@ -184,10 +196,29 @@ usage:
     return 0;
   }
 
+  if (strcmp(argv[1].str, "freeze") == 0) {
+    ENSURE_VM_IS_RUNNING("freeze");
+    FreezeVM();
+    return 0;
+  }
+
+  if (strcmp(argv[1].str, "unfreeze") == 0) {
+    ENSURE_VM_IS_RUNNING("unfreeze");
+    UnfreezeVM();
+    return 0;
+  }
+
   if (strcmp(argv[1].str, "port_dump") == 0) {
     if (argc != 3)
       goto usage;
     DumpPort(argv[2].str);
+    return 0;
+  }
+
+  if (strcmp(argv[1].str, "prepareblob") == 0) {
+    if (argc != 4)
+      goto usage;
+    PrepareBlob(argv[2].str, argv[3].str);
     return 0;
   }
 

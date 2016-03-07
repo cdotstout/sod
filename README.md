@@ -49,6 +49,52 @@ Then you should see lines being drawn in the QEMU VGA framebuffer.
 
 Note that in some cases you might need to substitute 0.0.0.0 in the tftp command with 'localhost'.
 
+## Installing apps to flash
+
+If running on a device that has a flash filesystem, you can also install
+snapshots into the device. To install a new app, use
+
+   ] dartino install lines.snap
+
+From there, the process is as above. Once installed you can run the program
+with
+
+  ] dartino run <path>/lines.snap
+
+Typically, <path> is something like `spifs/`.
+
+Programs installed this way will be loaded from flash to ram and then run.
+To run directly from flash, you can install a program heap blob that is directly
+runnable.
+This involves an extra step to allocate space:
+
+  ] dartino prepareblob lines.blob
+
+This should print a line like
+
+  flashtool -i ObjectEquals=0x21b149 -i GetField=0x21b171 -i SetField=0x21b181
+  -i ListIndexGet=0x21b199 -i ListIndexSet=0x21b1c9 -i ListLength=0x21b1f9
+  0x219679 <snapshot file> 0x90075000 lines.blob
+
+The `flashtool` program can be found at `third_party/dartino/out/DebugLK`.
+Using the given command line, it will produce a matching `lines.blob` file.
+Again, this can be installed using
+
+  ] dartino install lines.blob
+
+and run using
+
+  ] dartino run <path>/lines.blob
+
+Note that other filesystem operations are prohibited while programs run from
+flash. To write to the filesystem, first freeze those programs using
+
+  ] dartino freeze
+
+and unfreeze afterwards with
+
+  ] dartino unfreeze
+
 ## Building
 The main binary is \out\build-$target\lk.bin for flashing into dev boards or
 lk.elf for qemu runs.

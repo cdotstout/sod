@@ -15,6 +15,7 @@ MODULE_SRCS += \
 	$(LOCAL_DIR)/main.c \
 	$(LOCAL_DIR)/missing.c \
 	$(LOCAL_DIR)/loader.cpp \
+	$(LOCAL_DIR)/generate_flashtool_args.cpp \
 	$(LOCAL_DIR)/sensors.c
 
 MODULE_INCLUDES += $(DARTINO_BASE)
@@ -32,12 +33,14 @@ $(DARTINO_BASE)/out/Debug$(DARTINO_CONFIGURATION)/libdartino.a: force_dartino_ta
 	GYP_DEFINES=$(DARTINO_GYP_DEFINES) ninja -C $(DARTINO_BASE) lk
 	ninja -C $(DARTINO_BASE)/out/Debug$(DARTINO_CONFIGURATION)/ libdartino -t clean
 	ninja -C $(DARTINO_BASE)/out/Debug$(DARTINO_CONFIGURATION)/ libdartino
+	ninja -C $(DARTINO_BASE)/out/Debug$(DARTINO_CONFIGURATION)/ flashtool
 
 $(DARTINO_BASE)/out/Release$(DARTINO_CONFIGURATION)/libdartino.a: force_dartino_target
 	ninja -C $(DARTINO_BASE) lk -t clean
 	GYP_DEFINES=$(DARTINO_GYP_DEFINES) ninja -C $(DARTINO_BASE) lk
 	ninja -C $(DARTINO_BASE)/out/Release$(DARTINO_CONFIGURATION)/ libdartino -t clean
 	ninja -C $(DARTINO_BASE)/out/Release$(DARTINO_CONFIGURATION)/ libdartino
+	ninja -C $(DARTINO_BASE)/out/Release$(DARTINO_CONFIGURATION)/ flashtool
 
 # put arch local .S files here if developing memcpy/memmove
 
