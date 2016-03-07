@@ -60,6 +60,8 @@ LkSvgTest::LkSvgTest(int argc, const cmd_args *argv)
 
 int LkSvgTest::test_main()
 {
+    NSVGimage *image = nullptr;
+
     struct display_info info;
     if (display_get_info(&info) < 0) {
         printf("no display to draw on!\n");
@@ -70,23 +72,26 @@ int LkSvgTest::test_main()
     switch (info.format) {
         case DISPLAY_FORMAT_MONO_1:
             config = SkBitmap::Config::kBW_Config;
+            image = parse_cube();
+            break;
+        case DISPLAY_FORMAT_RGB_x111:
+            config = SkBitmap::Config::kRGB_111_Config;
+            image = parse_colors();
             break;
         default:
             printf("unhandled display format (%d)\n", info.format);
             return -1;
     }
 
-    SkBitmap bitmap;
-    bitmap.setConfig(config, info.width, info.height, info.stride);
-    bitmap.setPixels(info.framebuffer);
-    bitmap.eraseColor(0);
-
-    NSVGimage *image = parse();
-
     if (image == NULL) {
         printf("Could not open SVG image.\n");
         return -1;
     }
+
+    SkBitmap bitmap;
+    bitmap.setConfig(config, info.width, info.height, info.stride);
+    bitmap.setPixels(info.framebuffer);
+    bitmap.eraseColor(0);
 
     SkCanvas canvas(bitmap);
 
