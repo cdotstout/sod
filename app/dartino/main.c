@@ -42,15 +42,15 @@ enum {
 
 //////////////// Dart FFI setup ///////////////////////////////////////////////
 
-__WEAK status_t display_get_info(struct display_info *info) {
+__WEAK status_t display_get_framebuffer(struct display_framebuffer *fb) {
   return ERR_NOT_FOUND;
 }
 
 static gfx_surface* GetFullscreenSurface(void) {
-  struct display_info info;
-  if (display_get_info(&info) < 0)
+  struct display_framebuffer fb;
+  if (display_get_framebuffer(&fb) < 0)
     return NULL;
-  return gfx_create_surface_from_display(&info);
+  return gfx_create_surface_from_display(&fb);
 }
 
 static int GetWidth(gfx_surface* surface) {

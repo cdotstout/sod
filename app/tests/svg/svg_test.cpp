@@ -62,36 +62,36 @@ int LkSvgTest::test_main()
 {
     NSVGimage *image = nullptr;
 
-    struct display_info info;
-    if (display_get_info(&info) < 0) {
+    struct display_framebuffer info;
+    if (display_get_framebuffer(&info) < 0) {
         printf("no display to draw on!\n");
         return -1;
     }
 
     SkBitmap::Config config(SkBitmap::Config::kNo_Config);
-    switch (info.format) {
-        case DISPLAY_FORMAT_MONO_1:
+    switch (info.image.format) {
+        case IMAGE_FORMAT_MONO_1:
             config = SkBitmap::Config::kBW_Config;
             image = parse_cube();
             break;
-        case DISPLAY_FORMAT_RGB_x111:
+        case IMAGE_FORMAT_RGB_x111:
             config = SkBitmap::Config::kRGB_111_Config;
             image = parse_colors();
             break;
         default:
-            printf("unhandled display format (%d)\n", info.format);
+            printf("unhandled display format (%d)\n", info.image.format);
             return -1;
     }
+
+    SkBitmap bitmap;
+    bitmap.setConfig(config, info.image.width, info.image.height, info.image.rowbytes);
+    bitmap.setPixels(info.image.pixels);
+    bitmap.eraseColor(0);
 
     if (image == NULL) {
         printf("Could not open SVG image.\n");
         return -1;
     }
-
-    SkBitmap bitmap;
-    bitmap.setConfig(config, info.width, info.height, info.stride);
-    bitmap.setPixels(info.framebuffer);
-    bitmap.eraseColor(0);
 
     SkCanvas canvas(bitmap);
 
@@ -130,7 +130,7 @@ int LkSvgTest::test_main()
 
         total_draw_time_ms += draw_time;
 
-        info.flush(0, info.height-1);
+        info.flush(0, info.image.height - 1);
         update_time = current_time() - draw_time - start_time;
 
         total_update_time_ms += update_time;
