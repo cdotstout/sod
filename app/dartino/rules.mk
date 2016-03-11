@@ -4,14 +4,19 @@ DARTINO_BASE := $(BUILDROOT)/../third_party/dartino
 
 MODULE := $(LOCAL_DIR)
 
+MODULE_DEFINES += SK_BUILD_FOR_LK
+
 MODULE_CPPFLAGS := -std=c++11
 
 MODULE_DEPS += \
+    services/display \
+    external/gbskia	\
     lib/libm \
     lib/tftp \
     lib/font \
 
 MODULE_SRCS += \
+	$(LOCAL_DIR)/export.cpp \
 	$(LOCAL_DIR)/main.c \
 	$(LOCAL_DIR)/missing.c \
 	$(LOCAL_DIR)/loader.cpp \

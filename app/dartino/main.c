@@ -14,18 +14,12 @@
 #include <compiler.h>
 #include <endian.h>
 #include <platform.h>
-#include <dev/display.h>
 
 #include <kernel/port.h>
 
-#include <lib/font.h>
-#include <lib/gfx.h>
-
-#include <include/static_ffi.h>
 #include <include/dartino_api.h>
 
 #include "loader.h"
-#include "accelerometer.h"
 
 #if defined(WITH_LIB_CONSOLE)
 #include <lib/console.h>
@@ -40,52 +34,6 @@ enum {
   MODE_BURN
 } dartino_mode;
 
-
-//////////////// Dart FFI setup ///////////////////////////////////////////////
-
-__WEAK status_t display_get_framebuffer(struct display_framebuffer *fb) {
-  return ERR_NOT_FOUND;
-}
-
-static gfx_surface* GetFullscreenSurface(void) {
-  struct display_framebuffer fb;
-  if (display_get_framebuffer(&fb) < 0)
-    return NULL;
-  return gfx_create_surface_from_display(&fb);
-}
-
-static int GetWidth(gfx_surface* surface) {
-  if (!surface)
-    return 0;
-  return surface->width;
-}
-
-static int GetHeight(gfx_surface* surface) {
-  if (!surface)
-    return 0;
-  return surface->height;
-}
-
-
-DARTINO_EXPORT_TABLE_BEGIN
-DARTINO_EXPORT_TABLE_ENTRY("font_draw_char", font_draw_char)
-DARTINO_EXPORT_TABLE_ENTRY("gfx_create", GetFullscreenSurface)
-DARTINO_EXPORT_TABLE_ENTRY("gfx_width", GetWidth)
-DARTINO_EXPORT_TABLE_ENTRY("gfx_height", GetHeight)
-DARTINO_EXPORT_TABLE_ENTRY("gfx_destroy", gfx_surface_destroy)
-DARTINO_EXPORT_TABLE_ENTRY("gfx_pixel", gfx_putpixel)
-DARTINO_EXPORT_TABLE_ENTRY("gfx_line", gfx_line)
-DARTINO_EXPORT_TABLE_ENTRY("gfx_clear", gfx_clear)
-DARTINO_EXPORT_TABLE_ENTRY("gfx_flush", gfx_flush)
-DARTINO_EXPORT_TABLE_ENTRY("port_create", port_create)
-DARTINO_EXPORT_TABLE_ENTRY("port_destroy", port_destroy)
-DARTINO_EXPORT_TABLE_ENTRY("port_open", port_open)
-DARTINO_EXPORT_TABLE_ENTRY("port_close", port_open)
-DARTINO_EXPORT_TABLE_ENTRY("port_read", port_read)
-DARTINO_EXPORT_TABLE_ENTRY("port_write", port_write)
-DARTINO_EXPORT_TABLE_ENTRY("accelerometer_request_data",
-                           accelerometer_request_data)
-DARTINO_EXPORT_TABLE_END
 
 //////////////// Port debug ///////////////////////////////////////////////////
 
