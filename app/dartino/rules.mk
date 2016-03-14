@@ -16,7 +16,9 @@ MODULE_SRCS += \
 	$(LOCAL_DIR)/missing.c \
 	$(LOCAL_DIR)/loader.cpp \
 	$(LOCAL_DIR)/generate_flashtool_args.cpp \
-	$(LOCAL_DIR)/sensors.c
+	$(LOCAL_DIR)/accelerometer.c \
+	$(LOCAL_DIR)/sensors.c \
+
 
 MODULE_INCLUDES += $(DARTINO_BASE)
 
