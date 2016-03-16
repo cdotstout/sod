@@ -3,10 +3,7 @@ LOCAL_DIR := $(GET_LOCAL_DIR)
 MODULE := $(LOCAL_DIR)
 
 MODULE_DEPS += \
-    lib/libm    \
-    services/display    \
     external/gbskia \
-    external/gbskia/tests \
 
 MODULE_DEFINES +=  \
     SK_BUILD_FOR_LK \
@@ -14,6 +11,7 @@ MODULE_DEFINES +=  \
 MODULE_CPPFLAGS += -std=c++11
 
 MODULE_SRCS += \
-    $(LOCAL_DIR)/svg_test.cpp \
+    $(LOCAL_DIR)/displayable.cpp \
+    $(LOCAL_DIR)/displaym.cpp \
 
 include make/module.mk
