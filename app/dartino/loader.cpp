@@ -87,7 +87,7 @@ download_t* MakeDownload(const char* name) {
 
   // use the page alloc api to grab space for the app.
   d->start = reinterpret_cast<unsigned char*>(
-      page_alloc(kDownloadSlotSize / PAGE_SIZE));
+      page_alloc(kDownloadSlotSize / PAGE_SIZE, PAGE_ALLOC_ANY_ARENA));
   if (!d->start) {
     delete d;
     printf("error allocating memory for download\n");
