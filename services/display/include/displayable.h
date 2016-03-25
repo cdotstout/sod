@@ -41,7 +41,12 @@ class DisplayablePipe {
   static int getMaxPipeDepth() { return kMaxPipeDepth; }
 
   // Returns the displayable currently slotted to be rendered into.
-  Displayable* getCurrent() { return displayable_[0]; }
+  int getCurrent() { return 0; }
+
+  Displayable* getDisplayable(int index) {
+    DEBUG_ASSERT(index < kMaxPipeDepth);
+    return displayable_[index];
+  }
 
   // Present the 'current displayable' and switch the current if the pipe
   // contains > 1 displayable.

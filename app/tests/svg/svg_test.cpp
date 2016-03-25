@@ -100,7 +100,8 @@ class DisplayResources {
   }
 
   DisplayableImage* getCurrentImage() {
-    return static_cast<DisplayableImage*>(pipe_->getCurrent());
+    return static_cast<DisplayableImage*>(
+      pipe_->getDisplayable(pipe_->getCurrent()));
   }
 
   void present() { pipe_->present(); }

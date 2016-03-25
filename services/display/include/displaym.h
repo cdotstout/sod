@@ -9,6 +9,8 @@
 
 class Display {
  public:
+  virtual ~Display() = 0;
+
   // Creates an image that is displayable via a pipe.
   virtual DisplayableImage* CreateImage() = 0;
   virtual void DestroyImage(DisplayableImage* image) = 0;
@@ -19,9 +21,14 @@ class Display {
 };
 
 class DisplayManager {
+  class State;
  public:
+  static bool Init();
   static Display* Open();
   static void Close(Display* display);
+
+private:
+  static State* state;
 };
 
 #endif

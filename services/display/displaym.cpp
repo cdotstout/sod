@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 #include <dev/display.h>
+#include <kernel/mutex.h>
 #include <displaym.h>
 #include <stdlib.h>
 
@@ -49,7 +50,7 @@ class ImagePipe : public DisplayablePipe {
 };
 
 bool ImagePipe::present() {
-  auto image = static_cast<Image*>(getCurrent());
+  auto image = static_cast<Image*>(getDisplayable(getCurrent()));
   display_present(image->getImage(), 0, image->getImage()->height);
   return true;
 }
@@ -126,18 +127,64 @@ void LocalDisplay::DestroyPipe(DisplayablePipe* pipe) {
 
 //////////////////////////////////////////////////////////////////////////////
 
-static Display* g_display[1];
+class DisplayManager::State {
+public:
+  State() {
+    mutex_init(&mutex);
+  }
+  Display* display[1] {};
+  mutex_t mutex;
+};
+
+DisplayManager::State* DisplayManager::state {};
+
+bool DisplayManager::Init() {
+  DEBUG_ASSERT(state == nullptr);
+  state = new DisplayManager::State();
+  return state != nullptr;
+}
+
+class MutexLock {
+public:
+  MutexLock(mutex_t* mutex) : mutex_(mutex) {
+    mutex_acquire(mutex);
+  }
+  ~MutexLock() {
+    mutex_release(mutex_);
+  }
+  mutex_t* mutex_;
+};
 
 Display* DisplayManager::Open() {
-  if (!g_display[0]) {
-    g_display[0] = new LocalDisplay();
+  DEBUG_ASSERT(state);
+  MutexLock(&state->mutex);
+  if (!state->display[0]) {
+    state->display[0] = new LocalDisplay();
+    return state->display[0];
   }
-  return g_display[0];
+  // Already open
+  return nullptr;
 };
 
 void DisplayManager::Close(Display* display) {
-    if (g_display[0]) {
-        delete g_display[0];
-        g_display[0] = nullptr;
-    }
+  DEBUG_ASSERT(state);
+  MutexLock(&state->mutex);
+  if (display == state->display[0]) {
+      delete display;
+      state->display[0] = nullptr;
+  }
 }
+
+Display::~Display() {}
+
+//////////////////////////////////////////////////////////////////////////////
+
+// Performs display manager initialization at static init time.
+class DisplayManagerInitializer {
+public:
+  DisplayManagerInitializer() {
+    DisplayManager::Init();
+  }
+};
+
+static DisplayManagerInitializer initializer;
