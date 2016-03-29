@@ -43,7 +43,7 @@ class TftpClient {
   TftpClient(String address) : this.address = _lookup(address);
 
   /// Use the TFTP protocal to send the given file to the remote device.
-  Future putBinary(String filePath, String remoteFile) async {
+  Future<Null> putBinary(String filePath, String remoteFile) async {
     File file = new File(filePath);
     if (!await file.exists()) {
       throw new TftpException('File does not exist: $filePath');
@@ -110,7 +110,7 @@ abstract class _TftpConnection {
   }
 
   /// Return a future that completes when the entire operation has finished.
-  Future get opFuture => _completer.future;
+  Future<Null> get opFuture => _completer.future;
 
   /// Called when the operation is has finished or is aborted.
   /// If [errorMessage] is omitted or `null`
@@ -123,7 +123,7 @@ abstract class _TftpConnection {
   }
 
   /// Stop listening and processing events from the remote device
-  Future cancel() async {
+  Future<Null> cancel() async {
     if (_subscription != null) {
       await _subscription.cancel();
       _subscription = null;
@@ -133,9 +133,7 @@ abstract class _TftpConnection {
   /// Process an incomming socket event.
   void processEvent(RawSocketEvent event) {
     if (_debug) print('received event: $event');
-    if (event != RawSocketEvent.READ) {
-      throw new TftpException('unexpected event: $event');
-    }
+    // Sanity check the event is expected... e.g. a RawSocketEvent.READ
 
     Datagram payload = socket.receive();
     if (payload == null) {
@@ -191,7 +189,7 @@ class _TftpPut extends _TftpConnection {
       : super(socket, address);
 
   /// Perform the operation.
-  Future perform() {
+  Future<Null> perform() {
     if (_debug) print('sending write request: $remoteFile');
     sendPacket(_binaryWriteRequest(remoteFile));
     return opFuture;

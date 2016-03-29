@@ -1,0 +1,7 @@
+# manually generated and maintained
+
+# required for analysis of any SOD / Dartino apps
+dartino:../../third_party/dartino/pkg/dartino/lib/
+
+# packages used by these examples
+lk:../pkg/lk/lib/

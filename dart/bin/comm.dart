@@ -36,6 +36,9 @@ abstract class CommPort {
   /// If a timeout is not specified, then a default timeout will be used.
   Future<String> sendCommand(String text, {Duration timeout});
 
+  /// Echo text from the communication port for the specified time period.
+  Future<Null> echo(Duration duration);
+
   /// Close the port and return a future that completes.
   Future close();
 }
@@ -72,6 +75,35 @@ class LkTtyCommPort extends CommPort {
         return received.toString();
       }
       newline = ch == '\n' || ch == '\r';
+    }
+  }
+
+  @override
+  Future<Null> echo(Duration duration) async {
+    DateTime endTime = new DateTime.now().add(duration);
+    StringBuffer received = new StringBuffer();
+    var lastCh;
+    while (true) {
+      Duration timeout = endTime.difference(new DateTime.now());
+      int byte = await ttyFile.readByte().timeout(timeout).catchError((e) {
+        print(received.toString());
+        return -1;
+      }, test: (e) => e is TimeoutException);
+      if (byte == -1) break;
+      var ch = new String.fromCharCode(byte);
+      if (ch == '\n' || ch == '\r') {
+        if (lastCh == '\r' && ch == '\n') {
+          // don't echo line again
+        } {
+          String line = received.toString();
+          received.clear();
+          print(line);
+          if (line.startsWith('Exited with code')) break;
+        }
+      } else {
+        received.write(ch);
+      }
+      lastCh = ch;
     }
   }
 
